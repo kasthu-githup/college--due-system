@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { Department, User, StudentClearanceRecord, ClearanceItem, SystemStats, ClearanceStatus, Subject } from '../src/types';
+import { postgresManager } from './postgres';
 
 interface DatabaseSchema {
   departments: Department[];
@@ -460,6 +461,78 @@ class Database {
   constructor() {
     this.data = this.loadData();
     this.syncSubjectCheckpoints();
+    this.initPostgresSync();
+  }
+
+  private async initPostgresSync() {
+    try {
+      const isConnected = await postgresManager.detectAndInit();
+      if (isConnected) {
+        const pgData = await postgresManager.loadData();
+        if (pgData && pgData.users && pgData.clearances && pgData.departments) {
+          console.log('🔄 Synchronized in-memory database with Render PostgreSQL');
+          this.data = pgData;
+          this.syncSubjectCheckpoints();
+          // Also refresh local file cache
+          try {
+            fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+          } catch {
+            // Ignore
+          }
+        } else {
+          console.log('📤 Seeding Render PostgreSQL with current institutional data...');
+          postgresManager.saveData(this.data);
+          await postgresManager.flushSave();
+        }
+      }
+    } catch (e: any) {
+      console.warn('PostgreSQL synchronization note:', e.message);
+    }
+  }
+
+  public getStorageStatus() {
+    return {
+      postgres: postgresManager.getStatus(),
+      stats: {
+        users: this.data.users.length,
+        clearances: this.data.clearances.length,
+        departments: this.data.departments.length,
+        subjects: this.data.subjects?.length || 0,
+      }
+    };
+  }
+
+  public async configurePostgres(url: string) {
+    const res = await postgresManager.saveCustomUrl(url);
+    if (!res.success) {
+      return res;
+    }
+    if (postgresManager.getStatus().isConnected) {
+      const pgData = await postgresManager.loadData();
+      if (pgData && pgData.users && pgData.clearances) {
+        this.data = pgData;
+        this.syncSubjectCheckpoints();
+        this.saveData();
+      } else {
+        postgresManager.saveData(this.data);
+        await postgresManager.flushSave();
+      }
+    }
+    return { success: true, status: this.getStorageStatus() };
+  }
+
+  public async syncPostgresNow() {
+    if (!postgresManager.getStatus().isConnected) {
+      await postgresManager.detectAndInit();
+    }
+    if (postgresManager.getStatus().isConnected) {
+      postgresManager.saveData(this.data);
+      const ok = await postgresManager.flushSave();
+      if (ok) {
+        return { success: true, message: 'Synchronized current database state to Render PostgreSQL' };
+      }
+    }
+    return { success: false, error: postgresManager.getStatus().error || 'Render PostgreSQL is not connected' };
   }
 
   private loadData(): DatabaseSchema {
@@ -485,6 +558,7 @@ class Database {
     try {
       const data = dataToSave || this.data;
       fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      postgresManager.saveData(data);
     } catch (e) {
       console.error('Error saving db.json:', e);
     }

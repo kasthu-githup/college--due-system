@@ -18,7 +18,8 @@ import {
   Eye,
   EyeOff,
   Printer,
-  BookOpen
+  BookOpen,
+  X
 } from 'lucide-react';
 import { NoDueCertificate } from './NoDueCertificate';
 import { EditUserModal } from './admin/EditUserModal';

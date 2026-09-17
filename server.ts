@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -592,6 +593,42 @@ async function startServer() {
     try {
       const merged = db.syncData(req.body);
       res.json({ success: true, count: { users: merged.users.length, clearances: merged.clearances.length } });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // RENDER / POSTGRESQL DATABASE STATUS
+  app.get('/api/system/db-status', (req, res) => {
+    try {
+      res.json(db.getStorageStatus());
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // RENDER / POSTGRESQL MANUAL SYNC
+  app.post('/api/system/db-sync', async (req, res) => {
+    try {
+      const result = await db.syncPostgresNow();
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // RENDER / POSTGRESQL CONFIGURATION
+  app.post('/api/system/db-config', async (req, res) => {
+    try {
+      const { databaseUrl } = req.body;
+      if (typeof databaseUrl !== 'string') {
+        return res.status(400).json({ error: 'databaseUrl string is required' });
+      }
+      const result = await db.configurePostgres(databaseUrl);
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+      res.json(result);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

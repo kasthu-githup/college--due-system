@@ -30,6 +30,7 @@ import {
   Printer,
   Download,
   Upload,
+  Database,
 } from 'lucide-react';
 import { NoDueCertificate } from './NoDueCertificate';
 import { EditUserModal } from './admin/EditUserModal';
@@ -38,6 +39,7 @@ import { AddStaffModal } from './admin/AddStaffModal';
 import { ClearanceDetailModal } from './admin/ClearanceDetailModal';
 import { SubjectModal } from './admin/SubjectModal';
 import { AllocateStaffModal } from './admin/AllocateStaffModal';
+import { RenderDatabaseModal } from './admin/RenderDatabaseModal';
 import { SelectOrTypeInput, SelectOption } from './common/SelectOrTypeInput';
 import { ConfirmDialog } from './common/ConfirmDialog';
 import { api } from '../lib/api';
@@ -79,6 +81,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   const [inspectingClearance, setInspectingClearance] = useState<StudentClearanceRecord | null>(null);
   const [selectedCertClearance, setSelectedCertClearance] = useState<StudentClearanceRecord | null>(null);
   const [autoPrintCert, setAutoPrintCert] = useState(false);
+  const [isRenderDbModalOpen, setIsRenderDbModalOpen] = useState(false);
+  const [dbStatus, setDbStatus] = useState<any>(null);
 
   // Reusable confirmation dialog state for deletes
   const [confirmDialogState, setConfirmDialogState] = useState<{
@@ -134,13 +138,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [statsData, deptsData, usersData, clrData, logsData, subjData] = await Promise.all([
+      const [statsData, deptsData, usersData, clrData, logsData, subjData, dbStatusData] = await Promise.all([
         api.getStats(token),
         api.getDepartments(),
         api.getUsers(token),
         api.getClearances(token),
         api.getAuditLogs(token),
         api.getSubjects(token),
+        api.getDbStatus(),
       ]);
 
       if (statsData) setStats(statsData);
@@ -153,6 +158,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
       if (clrData) setClearances(clrData);
       if (logsData) setAuditLogs(logsData);
       if (subjData) setSubjects(subjData);
+      if (dbStatusData) setDbStatus(dbStatusData);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -437,6 +443,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
               accept=".json"
               className="hidden"
             />
+            <button
+              type="button"
+              onClick={() => setIsRenderDbModalOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-semibold border border-stone-700 transition"
+              title="Configure and manage Render PostgreSQL Database connection"
+            >
+              <Database className={`w-3.5 h-3.5 ${dbStatus?.postgres?.isConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
+              <span>Render DB</span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  dbStatus?.postgres?.isConnected ? 'bg-emerald-400 ring-2 ring-emerald-400/30' : 'bg-amber-400'
+                }`}
+                title={dbStatus?.postgres?.isConnected ? 'Render PostgreSQL Connected' : 'Local Storage Mode'}
+              />
+            </button>
             <button
               type="button"
               onClick={handleExportBackup}
@@ -2089,6 +2110,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
         isLoading={confirmDialogState.isLoading}
         onConfirm={confirmDialogState.onConfirm}
         onClose={() => setConfirmDialogState((prev) => ({ ...prev, isOpen: false }))}
+      />
+
+      {/* RENDER POSTGRESQL DATABASE MANAGEMENT MODAL */}
+      <RenderDatabaseModal
+        isOpen={isRenderDbModalOpen}
+        onClose={() => {
+          setIsRenderDbModalOpen(false);
+          fetchData();
+        }}
       />
     </div>
   );

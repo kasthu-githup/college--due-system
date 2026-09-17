@@ -500,4 +500,69 @@ export const api = {
     }
     return success;
   },
+
+  // --- RENDER / POSTGRESQL DATABASE ---
+  async getDbStatus(): Promise<{
+    postgres: {
+      isConfigured: boolean;
+      isConnected: boolean;
+      urlSource: 'env' | 'custom' | 'none';
+      maskedUrl?: string;
+      error?: string;
+      lastSyncAt?: string;
+      tableInitialized?: boolean;
+    };
+    stats: {
+      users: number;
+      clearances: number;
+      departments: number;
+      subjects: number;
+    };
+  }> {
+    try {
+      const res = await fetch('/api/system/db-status');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Local fallback
+    }
+    return {
+      postgres: {
+        isConfigured: false,
+        isConnected: false,
+        urlSource: 'none',
+      },
+      stats: {
+        users: clientDb.getUsers().length,
+        clearances: clientDb.getAllClearances().length,
+        departments: clientDb.getDepartments().length,
+        subjects: clientDb.getSubjects().length,
+      },
+    };
+  },
+
+  async configureDb(databaseUrl: string): Promise<{ success: boolean; error?: string; status?: any }> {
+    try {
+      const res = await fetch('/api/system/db-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ databaseUrl }),
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error configuring database' };
+    }
+  },
+
+  async syncDb(): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/system/db-sync', {
+        method: 'POST',
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error syncing database' };
+    }
+  },
 };
