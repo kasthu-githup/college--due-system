@@ -565,6 +565,38 @@ async function startServer() {
     }
   });
 
+  // DATABASE BACKUP & RESTORE: Export
+  app.get('/api/database/export', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+    try {
+      const data = db.exportData();
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="college_cnd_backup_${new Date().toISOString().split('T')[0]}.json"`);
+      res.json(data);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // DATABASE BACKUP & RESTORE: Import
+  app.post('/api/database/import', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+    try {
+      const result = db.importData(req.body);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // DATABASE SYNC: Two-way synchronization between client and server
+  app.post('/api/database/sync', (req, res) => {
+    try {
+      const merged = db.syncData(req.body);
+      res.json({ success: true, count: { users: merged.users.length, clearances: merged.clearances.length } });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // 404 handler for API routes so it NEVER returns HTML to API callers
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` });

@@ -925,6 +925,102 @@ class ClientStorageEngine {
     this.saveData();
     return newSubj;
   }
+
+  public updateUser(userId: string, updates: Partial<User>): User {
+    const idx = this.data.users.findIndex(u => u.id === userId);
+    if (idx === -1) throw new Error('User not found');
+    this.data.users[idx] = { ...this.data.users[idx], ...updates };
+    this.saveData();
+    const { password, ...safe } = this.data.users[idx];
+    return safe as User;
+  }
+
+  public deleteUser(userId: string): boolean {
+    this.data.users = this.data.users.filter(u => u.id !== userId);
+    this.data.clearances = this.data.clearances.filter(c => c.studentId !== userId);
+    this.saveData();
+    return true;
+  }
+
+  public deleteSubject(subjId: string): boolean {
+    this.data.subjects = this.data.subjects.filter(s => s.id !== subjId);
+    this.saveData();
+    return true;
+  }
+
+  public deleteDepartment(deptId: string): boolean {
+    this.data.departments = this.data.departments.filter(d => d.id !== deptId);
+    this.saveData();
+    return true;
+  }
+
+  public deleteClearanceItem(clearanceId: string, itemId: string): StudentClearanceRecord {
+    const clr = this.data.clearances.find(c => c.id === clearanceId);
+    if (!clr) throw new Error('Clearance record not found');
+    clr.items = clr.items.filter(i => i.id !== itemId);
+    clr.totalCheckpoints = clr.items.length;
+    clr.clearedCheckpoints = clr.items.filter(i => i.status === 'APPROVED').length;
+    clr.totalDueAmount = clr.items.reduce((sum, i) => sum + (i.dueAmount || 0), 0);
+    const hasDues = clr.items.some(i => i.status === 'DUE_RAISED' || (i.dueAmount || 0) > 0);
+    const allApproved = clr.items.every(i => i.status === 'APPROVED');
+    if (hasDues) {
+      clr.overallStatus = 'HAS_DUES';
+    } else if (allApproved && clr.totalCheckpoints > 0) {
+      clr.overallStatus = 'COMPLETED';
+    } else {
+      clr.overallStatus = 'IN_PROGRESS';
+    }
+    clr.updatedAt = new Date().toISOString();
+    this.saveData();
+    return clr;
+  }
+
+  public getAuditLogs(): any[] {
+    return [
+      {
+        id: 'log_local_init',
+        action: 'CLIENT_STORAGE_ACTIVE',
+        performedBy: 'System',
+        performedByRole: 'SYSTEM',
+        details: 'Client storage engine active and resilient.',
+        timestamp: new Date().toISOString(),
+      }
+    ];
+  }
+
+  public exportDatabase(): string {
+    return JSON.stringify(this.data, null, 2);
+  }
+
+  public importDatabase(jsonString: string): boolean {
+    try {
+      const parsed = JSON.parse(jsonString);
+      if (parsed.users && parsed.clearances) {
+        this.data = parsed;
+        this.saveData();
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  public async syncWithServer(): Promise<void> {
+    try {
+      const res = await fetch('/api/database/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.data),
+      });
+      if (res.ok) {
+        console.log('[CND Sync] Local state synchronized with server.');
+      }
+    } catch {
+      // Offline / Static mode - local storage holds truth
+    }
+  }
 }
 
 export const clientDb = new ClientStorageEngine();
+

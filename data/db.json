@@ -12,7 +12,10 @@
       "code": "ECE",
       "name": "Electronics and Communication Engineering",
       "description": "Department of Electronics & Communication Engineering",
-      "createdAt": "2026-09-17T04:47:47.901Z"
+      "createdAt": "2026-09-17T04:47:47.901Z",
+      "hodId": "user_hod_mu53n94f_78nxz",
+      "hodName": "ramesh",
+      "hodEmail": "hod@gmail.com"
     },
     {
       "id": "dept_eee",
@@ -41,6 +44,16 @@
       "name": "Civil Engineering",
       "description": "Department of Civil Engineering",
       "createdAt": "2026-09-17T04:47:47.901Z"
+    },
+    {
+      "id": "dept_cs_mu53ouke_17pbm",
+      "code": "CS",
+      "name": "cyber security",
+      "description": "Department of cyber security",
+      "createdAt": "2026-09-17T05:40:09.278Z",
+      "hodId": "user_hod_mu53ouke_x56b8",
+      "hodName": "naveen",
+      "hodEmail": "hos@gmail.com"
     }
   ],
   "users": [
@@ -153,10 +166,10 @@
     },
     {
       "id": "user_student_732423104088",
-      "username": "732423104088",
-      "rollNo": "732423104088",
-      "registerNo": "732423104088",
-      "name": "Student (732423104088)",
+      "username": "732423104003",
+      "rollNo": "732423104003",
+      "registerNo": "7324231040003",
+      "name": "rose",
       "email": "732423104088@college.edu",
       "password": "student123",
       "role": "STUDENT",
@@ -168,7 +181,91 @@
       "section": "A",
       "isHosteler": false,
       "status": "ACTIVE",
-      "createdAt": "2026-09-17T05:27:54.768Z"
+      "createdAt": "2026-09-17T05:27:54.768Z",
+      "phone": ""
+    },
+    {
+      "id": "user_hod_mu53n94f_78nxz",
+      "username": "hod_ece",
+      "name": "ramesh",
+      "email": "hod@gmail.com",
+      "password": "hod123",
+      "role": "HOD",
+      "departmentId": "dept_ece",
+      "departmentName": "Electronics and Communication Engineering",
+      "phone": "1239874618",
+      "status": "ACTIVE",
+      "allocatedBy": "user_admin",
+      "allocatedByName": "College Administrator",
+      "createdAt": "2026-09-17T05:38:54.831Z"
+    },
+    {
+      "id": "user_hod_mu53ouke_x56b8",
+      "username": "hod_cs",
+      "name": "naveen",
+      "email": "hos@gmail.com",
+      "password": "hod123",
+      "role": "HOD",
+      "departmentId": "dept_cs_mu53ouke_17pbm",
+      "departmentName": "cyber security",
+      "phone": "96239032362",
+      "status": "ACTIVE",
+      "allocatedBy": "user_admin",
+      "allocatedByName": "College Administrator",
+      "createdAt": "2026-09-17T05:40:09.278Z"
+    },
+    {
+      "id": "user_staff_mu53r0no_8hrxu",
+      "username": "fac.acc.o1",
+      "staffId": "FAC-PLACE-01",
+      "name": "kumar",
+      "email": "stad@gmail.com",
+      "password": "staff123",
+      "role": "STAFF",
+      "departmentId": "dept_cse",
+      "departmentName": "Computer Science and Engineering",
+      "designation": "cental",
+      "clearanceScope": "placement traning",
+      "phone": "",
+      "status": "ACTIVE",
+      "allocatedBy": "user_admin",
+      "allocatedByName": "College Administrator",
+      "createdAt": "2026-09-17T05:41:50.484Z"
+    },
+    {
+      "id": "user_hod-cs",
+      "username": "hod-cs",
+      "staffId": "HOD-CS",
+      "name": "Head of Department (hod-cs)",
+      "email": "hod-cs@college.edu",
+      "password": "hod123",
+      "role": "HOD",
+      "departmentId": "dept_cse",
+      "departmentName": "Computer Science and Engineering",
+      "designation": "Professor & HOD",
+      "status": "ACTIVE",
+      "createdAt": "2026-09-17T05:53:16.847Z"
+    },
+    {
+      "id": "user_stud_mu55p2n2_7st4q",
+      "username": "999999999999",
+      "rollNo": "999999999999",
+      "registerNo": "999999999999",
+      "name": "Test Student Deploy",
+      "email": "test.deploy@college.edu",
+      "password": "student123",
+      "role": "STUDENT",
+      "departmentId": "dept_cse",
+      "departmentName": "Computer Science and Engineering",
+      "degree": "B.E. CSE",
+      "batchYear": "2021 - 2025",
+      "semester": 8,
+      "isHosteler": false,
+      "phone": "9876543210",
+      "status": "ACTIVE",
+      "allocatedBy": "user_admin",
+      "allocatedByName": "College Administrator",
+      "createdAt": "2026-09-17T06:36:18.974Z"
     }
   ],
   "clearances": [
@@ -185,9 +282,9 @@
       "semester": 8,
       "isHosteler": false,
       "totalCheckpoints": 11,
-      "clearedCheckpoints": 0,
+      "clearedCheckpoints": 11,
       "totalDueAmount": 0,
-      "overallStatus": "IN_PROGRESS",
+      "overallStatus": "COMPLETED",
       "items": [
         {
           "id": "item_mu51tinx_fh0gm",
@@ -196,11 +293,15 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Class Advisor",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:00.376Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:00.376Z"
         },
         {
           "id": "item_mu51tinx_qdgcm",
@@ -209,11 +310,15 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Computer Science and Engineering Labs & Equipment",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:02.116Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:02.116Z"
         },
         {
           "id": "item_mu51tinx_2h7sy",
@@ -222,11 +327,15 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Computer Science and Engineering Dept Library",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:03.542Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:03.542Z"
         },
         {
           "id": "item_subj_mu51tiny_s4v6s",
@@ -235,14 +344,21 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Subject: CS8651",
           "subjectId": "subj_cs8651",
           "subjectCode": "CS8651",
           "subjectName": "Internet Programming",
-          "updatedAt": "2026-09-17T04:47:47.902Z"
+          "updatedAt": "2026-09-17T05:46:36.312Z",
+          "assignedStaffId": "user_staff_lib",
+          "assignedStaffName": "Mr. M. Suresh",
+          "clearedByUserId": "user_staff_lib",
+          "clearedByUserName": "Mr. M. Suresh",
+          "clearedByDesignation": "Central Librarian",
+          "clearedAt": "2026-09-17T05:46:36.312Z",
+          "remarks": "Approved by Mr. M. Suresh (Central Librarian)"
         },
         {
           "id": "item_subj_mu51tiny_956pf",
@@ -251,14 +367,21 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Subject: CS8661",
           "subjectId": "subj_cs8661",
           "subjectCode": "CS8661",
           "subjectName": "Internet Programming Laboratory",
-          "updatedAt": "2026-09-17T04:47:47.902Z"
+          "updatedAt": "2026-09-17T05:47:30.111Z",
+          "assignedStaffId": "user_staff_mu53r0no_8hrxu",
+          "assignedStaffName": "kumar",
+          "clearedByUserId": "user_staff_mu53r0no_8hrxu",
+          "clearedByUserName": "kumar",
+          "clearedByDesignation": "cental",
+          "clearedAt": "2026-09-17T05:47:30.111Z",
+          "remarks": "Approved by kumar (cental)"
         },
         {
           "id": "item_subj_mu51tiny_asyu4",
@@ -267,14 +390,20 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Subject: CS8691",
           "subjectId": "subj_cs8691",
           "subjectCode": "CS8691",
           "subjectName": "Artificial Intelligence & Machine Learning",
-          "updatedAt": "2026-09-17T04:47:47.902Z"
+          "updatedAt": "2026-09-17T05:48:05.953Z",
+          "assignedStaffId": "user_staff_cse",
+          "assignedStaffName": "Prof. S. Priya",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:05.953Z"
         },
         {
           "id": "item_mu51tinx_hn3wq",
@@ -283,59 +412,82 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "HOD",
           "assignedScope": "HOD Department Signoff",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:07.160Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:07.160Z"
         },
         {
           "id": "item_mu51tinx_cbtks",
           "checkpointKey": "central_library",
           "title": "Central College Library Clearance",
           "category": "CENTRAL",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Central Library",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:08.385Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:08.385Z"
         },
         {
           "id": "item_mu51tinx_cqpr7",
           "checkpointKey": "accounts",
           "title": "College Finance & Accounts Counter (Tuition & Exam Fees)",
           "category": "CENTRAL",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Accounts Section",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:13.146Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:13.146Z"
         },
         {
           "id": "item_mu51tinx_6to4y",
           "checkpointKey": "sports",
           "title": "Physical Education & Sports Directorate",
           "category": "CENTRAL",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Sports Directorate",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:12.004Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:12.004Z"
         },
         {
           "id": "item_mu51tinx_datdx",
           "checkpointKey": "placement",
           "title": "Career Guidance & Training & Placement Cell",
           "category": "CENTRAL",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Placement Cell",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:48:14.346Z",
+          "clearedByUserId": "user_admin",
+          "clearedByUserName": "College Administrator",
+          "clearedByDesignation": "Administrator",
+          "clearedAt": "2026-09-17T05:48:14.346Z"
         }
       ],
       "createdAt": "2026-09-17T04:47:47.901Z",
-      "updatedAt": "2026-09-17T04:47:47.901Z"
+      "updatedAt": "2026-09-17T05:48:14.346Z",
+      "certificateIssuedAt": "2026-09-17T05:48:14.346Z",
+      "certificateId": "NODUE-2026-732423104001-2794",
+      "verificationHash": "8148A58900B898C1"
     },
     {
       "id": "clr_732423104002",
@@ -350,7 +502,7 @@
       "semester": 8,
       "isHosteler": true,
       "totalCheckpoints": 12,
-      "clearedCheckpoints": 0,
+      "clearedCheckpoints": 2,
       "totalDueAmount": 0,
       "overallStatus": "IN_PROGRESS",
       "items": [
@@ -407,7 +559,9 @@
           "subjectId": "subj_cs8651",
           "subjectCode": "CS8651",
           "subjectName": "Internet Programming",
-          "updatedAt": "2026-09-17T04:47:47.902Z"
+          "updatedAt": "2026-09-17T05:44:15.535Z",
+          "assignedStaffId": "user_staff_lib",
+          "assignedStaffName": "Mr. M. Suresh"
         },
         {
           "id": "item_subj_mu51tiny_bauxi",
@@ -416,14 +570,21 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "STAFF",
           "assignedScope": "Subject: CS8661",
           "subjectId": "subj_cs8661",
           "subjectCode": "CS8661",
           "subjectName": "Internet Programming Laboratory",
-          "updatedAt": "2026-09-17T04:47:47.902Z"
+          "updatedAt": "2026-09-17T05:47:32.596Z",
+          "assignedStaffId": "user_staff_mu53r0no_8hrxu",
+          "assignedStaffName": "kumar",
+          "clearedByUserId": "user_staff_mu53r0no_8hrxu",
+          "clearedByUserName": "kumar",
+          "clearedByDesignation": "cental",
+          "clearedAt": "2026-09-17T05:47:32.596Z",
+          "remarks": "Approved by kumar (cental)"
         },
         {
           "id": "item_subj_mu51tiny_j6c34",
@@ -439,7 +600,9 @@
           "subjectId": "subj_cs8691",
           "subjectCode": "CS8691",
           "subjectName": "Artificial Intelligence & Machine Learning",
-          "updatedAt": "2026-09-17T04:47:47.902Z"
+          "updatedAt": "2026-09-17T05:44:35.398Z",
+          "assignedStaffId": "user_staff_cse",
+          "assignedStaffName": "Prof. S. Priya"
         },
         {
           "id": "item_mu51tinx_3d29l",
@@ -448,11 +611,16 @@
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "HOD",
           "assignedScope": "HOD Department Signoff",
-          "updatedAt": "2026-09-17T04:47:47.901Z"
+          "updatedAt": "2026-09-17T05:53:39.158Z",
+          "clearedByUserId": "user_hod-cs",
+          "clearedByUserName": "Head of Department (hod-cs)",
+          "clearedByDesignation": "Professor & HOD",
+          "clearedAt": "2026-09-17T05:53:39.158Z",
+          "remarks": "Approved by Head of Department"
         },
         {
           "id": "item_mu51tinx_50jyx",
@@ -511,22 +679,22 @@
         }
       ],
       "createdAt": "2026-09-17T04:47:47.901Z",
-      "updatedAt": "2026-09-17T04:47:47.901Z"
+      "updatedAt": "2026-09-17T05:53:39.158Z"
     },
     {
       "id": "clr_mu5393tc_mkvld",
       "studentId": "user_student_732423104088",
-      "studentName": "Student (732423104088)",
-      "studentRollNo": "732423104088",
-      "studentRegisterNo": "732423104088",
+      "studentName": "rose",
+      "studentRollNo": "732423104003",
+      "studentRegisterNo": "7324231040003",
       "studentDepartmentId": "dept_cse",
       "studentDepartmentName": "Computer Science and Engineering",
       "degree": "B.E. Computer Science and Engineering",
       "batchYear": "2021 - 2025",
       "semester": 8,
       "isHosteler": false,
-      "totalCheckpoints": 8,
-      "clearedCheckpoints": 0,
+      "totalCheckpoints": 11,
+      "clearedCheckpoints": 1,
       "totalDueAmount": 0,
       "overallStatus": "IN_PROGRESS",
       "items": [
@@ -570,17 +738,76 @@
           "updatedAt": "2026-09-17T05:27:54.768Z"
         },
         {
+          "id": "item_subj_mu53984c_uan0k",
+          "checkpointKey": "subj_subj_cs8651",
+          "title": "Subject: CS8651 - Internet Programming",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Subject: CS8651",
+          "subjectId": "subj_cs8651",
+          "subjectCode": "CS8651",
+          "subjectName": "Internet Programming",
+          "assignedStaffId": "user_staff_lib",
+          "assignedStaffName": "Mr. M. Suresh",
+          "updatedAt": "2026-09-17T05:44:15.535Z"
+        },
+        {
+          "id": "item_subj_mu53984c_f02db",
+          "checkpointKey": "subj_subj_cs8661",
+          "title": "Subject: CS8661 - Internet Programming Laboratory",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Subject: CS8661",
+          "subjectId": "subj_cs8661",
+          "subjectCode": "CS8661",
+          "subjectName": "Internet Programming Laboratory",
+          "assignedStaffId": "user_staff_mu53r0no_8hrxu",
+          "assignedStaffName": "kumar",
+          "updatedAt": "2026-09-17T05:44:24.592Z"
+        },
+        {
+          "id": "item_subj_mu53984c_lvvrp",
+          "checkpointKey": "subj_subj_cs8691",
+          "title": "Subject: CS8691 - Artificial Intelligence & Machine Learning",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Subject: CS8691",
+          "subjectId": "subj_cs8691",
+          "subjectCode": "CS8691",
+          "subjectName": "Artificial Intelligence & Machine Learning",
+          "assignedStaffId": "user_staff_cse",
+          "assignedStaffName": "Prof. S. Priya",
+          "updatedAt": "2026-09-17T05:44:35.398Z"
+        },
+        {
           "id": "item_mu5393tc_dqvet",
           "checkpointKey": "dept_hod",
           "title": "HOD Final Department Endorsement (Computer Science and Engineering)",
           "category": "DEPARTMENT",
           "departmentId": "dept_cse",
           "departmentName": "Computer Science and Engineering",
-          "status": "PENDING",
+          "status": "APPROVED",
           "dueAmount": 0,
           "assignedRole": "HOD",
           "assignedScope": "HOD Department Signoff",
-          "updatedAt": "2026-09-17T05:27:54.768Z"
+          "updatedAt": "2026-09-17T05:53:41.215Z",
+          "clearedByUserId": "user_hod-cs",
+          "clearedByUserName": "Head of Department (hod-cs)",
+          "clearedByDesignation": "Professor & HOD",
+          "clearedAt": "2026-09-17T05:53:41.215Z",
+          "remarks": "Approved by Head of Department"
         },
         {
           "id": "item_mu5393tc_2y68x",
@@ -628,7 +855,124 @@
         }
       ],
       "createdAt": "2026-09-17T05:27:54.768Z",
-      "updatedAt": "2026-09-17T05:27:54.768Z"
+      "updatedAt": "2026-09-17T05:53:41.215Z"
+    },
+    {
+      "id": "clr_mu55p2n2_wgctt",
+      "studentId": "user_stud_mu55p2n2_7st4q",
+      "studentName": "Test Student Deploy",
+      "studentRollNo": "999999999999",
+      "studentRegisterNo": "999999999999",
+      "studentDepartmentId": "dept_cse",
+      "studentDepartmentName": "Computer Science and Engineering",
+      "degree": "B.E. CSE",
+      "batchYear": "2021 - 2025",
+      "semester": 8,
+      "isHosteler": false,
+      "totalCheckpoints": 8,
+      "clearedCheckpoints": 0,
+      "totalDueAmount": 0,
+      "overallStatus": "IN_PROGRESS",
+      "items": [
+        {
+          "id": "item_mu55p2n2_3a402",
+          "checkpointKey": "dept_advisor",
+          "title": "Class Advisor / Tutor Clearance",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Class Advisor",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_i71z8",
+          "checkpointKey": "dept_lab",
+          "title": "Computer Science and Engineering Laboratories & Equipment",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Computer Science and Engineering Labs & Equipment",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_wxcvr",
+          "checkpointKey": "dept_library",
+          "title": "Computer Science and Engineering Department Library & Seminar Records",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Computer Science and Engineering Dept Library",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_7sr5n",
+          "checkpointKey": "dept_hod",
+          "title": "HOD Final Department Endorsement (Computer Science and Engineering)",
+          "category": "DEPARTMENT",
+          "departmentId": "dept_cse",
+          "departmentName": "Computer Science and Engineering",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "HOD",
+          "assignedScope": "HOD Department Signoff",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_oxqhx",
+          "checkpointKey": "central_library",
+          "title": "Central College Library Clearance",
+          "category": "CENTRAL",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Central Library",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_xdg4h",
+          "checkpointKey": "accounts",
+          "title": "College Finance & Accounts Counter (Tuition & Exam Fees)",
+          "category": "CENTRAL",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Accounts Section",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_e8sfs",
+          "checkpointKey": "sports",
+          "title": "Physical Education & Sports Directorate",
+          "category": "CENTRAL",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Sports Directorate",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        },
+        {
+          "id": "item_mu55p2n2_fwdug",
+          "checkpointKey": "placement",
+          "title": "Career Guidance & Training & Placement Cell",
+          "category": "CENTRAL",
+          "status": "PENDING",
+          "dueAmount": 0,
+          "assignedRole": "STAFF",
+          "assignedScope": "Placement Cell",
+          "updatedAt": "2026-09-17T06:36:18.974Z"
+        }
+      ],
+      "createdAt": "2026-09-17T06:36:18.974Z",
+      "updatedAt": "2026-09-17T06:36:18.974Z"
     }
   ],
   "subjects": [
@@ -644,7 +988,11 @@
       "credits": 3,
       "batchYear": "2021 - 2025",
       "description": "Web development, server protocols, full-stack architecture, and APIs",
-      "createdAt": "2026-09-17T04:47:47.901Z"
+      "createdAt": "2026-09-17T04:47:47.901Z",
+      "assignedStaffId": "user_staff_lib",
+      "assignedStaffName": "Mr. M. Suresh",
+      "assignedStaffDesignation": "Central Librarian",
+      "updatedAt": "2026-09-17T05:44:15.535Z"
     },
     {
       "id": "subj_cs8661",
@@ -658,7 +1006,11 @@
       "credits": 2,
       "batchYear": "2021 - 2025",
       "description": "Practical lab experiments in web technologies, client-server apps, and databases",
-      "createdAt": "2026-09-17T04:47:47.901Z"
+      "createdAt": "2026-09-17T04:47:47.901Z",
+      "assignedStaffId": "user_staff_mu53r0no_8hrxu",
+      "assignedStaffName": "kumar",
+      "assignedStaffDesignation": "cental",
+      "updatedAt": "2026-09-17T05:44:24.592Z"
     },
     {
       "id": "subj_cs8691",
@@ -672,7 +1024,11 @@
       "credits": 4,
       "batchYear": "2021 - 2025",
       "description": "Search algorithms, supervised learning, deep networks, and neural models",
-      "createdAt": "2026-09-17T04:47:47.901Z"
+      "createdAt": "2026-09-17T04:47:47.901Z",
+      "assignedStaffId": "user_staff_cse",
+      "assignedStaffName": "Prof. S. Priya",
+      "assignedStaffDesignation": "Assistant Professor / Class Advisor",
+      "updatedAt": "2026-09-17T05:44:35.398Z"
     },
     {
       "id": "subj_ec8395",
@@ -686,7 +1042,11 @@
       "credits": 3,
       "batchYear": "2021 - 2025",
       "description": "Analog and digital transmission systems, modulation, and signal propagation",
-      "createdAt": "2026-09-17T04:47:47.901Z"
+      "createdAt": "2026-09-17T04:47:47.901Z",
+      "assignedStaffId": "user_staff_lib",
+      "assignedStaffName": "Mr. M. Suresh",
+      "assignedStaffDesignation": "Central Librarian",
+      "updatedAt": "2026-09-17T05:44:43.787Z"
     },
     {
       "id": "subj_me8594",
@@ -700,10 +1060,222 @@
       "credits": 3,
       "batchYear": "2021 - 2025",
       "description": "Fluid power fundamentals, hydraulic circuits, valves, and industrial actuators",
-      "createdAt": "2026-09-17T04:47:47.901Z"
+      "createdAt": "2026-09-17T04:47:47.901Z",
+      "assignedStaffId": "user_staff_mu53r0no_8hrxu",
+      "assignedStaffName": "kumar",
+      "assignedStaffDesignation": "cental",
+      "updatedAt": "2026-09-17T05:44:55.309Z"
     }
   ],
   "auditLogs": [
+    {
+      "id": "log_mu55p2n2_iyxio",
+      "action": "CREATE_STUDENT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Enrolled student Test Student Deploy (999999999999)",
+      "timestamp": "2026-09-17T06:36:18.974Z"
+    },
+    {
+      "id": "log_mu546927_u732x",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "hod-cs",
+      "performedByRole": "HOD",
+      "details": "APPROVE on HOD Final Department Endorsement (Computer Science and Engineering) for rose (732423104003)",
+      "timestamp": "2026-09-17T05:53:41.215Z"
+    },
+    {
+      "id": "log_mu5467h2_hvbrn",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "hod-cs",
+      "performedByRole": "HOD",
+      "details": "APPROVE on HOD Final Department Endorsement (Computer Science and Engineering) for Kavitha M (732423104002)",
+      "timestamp": "2026-09-17T05:53:39.158Z"
+    },
+    {
+      "id": "log_mu53z8ui_6qkyi",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Career Guidance & Training & Placement Cell for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:14.346Z"
+    },
+    {
+      "id": "log_mu53z7x6_istb7",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on College Finance & Accounts Counter (Tuition & Exam Fees) for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:13.146Z"
+    },
+    {
+      "id": "log_mu53z71g_sutzg",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Physical Education & Sports Directorate for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:12.004Z"
+    },
+    {
+      "id": "log_mu53z48x_8d4de",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Central College Library Clearance for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:08.385Z"
+    },
+    {
+      "id": "log_mu53z3aw_89dml",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on HOD Final Department Endorsement (Computer Science and Engineering) for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:07.160Z"
+    },
+    {
+      "id": "log_mu53z2dd_96vci",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Subject: CS8691 - Artificial Intelligence & Machine Learning for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:05.953Z"
+    },
+    {
+      "id": "log_mu53z0ie_x6exu",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Computer Science and Engineering Department Library & Seminar Records for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:03.542Z"
+    },
+    {
+      "id": "log_mu53yzes_zvxz4",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Computer Science and Engineering Laboratories & Equipment for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:02.116Z"
+    },
+    {
+      "id": "log_mu53yy2g_qrehi",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "APPROVE on Class Advisor / Tutor Clearance for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:48:00.376Z"
+    },
+    {
+      "id": "log_mu53ycms_1cs80",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "fac.acc.o1",
+      "performedByRole": "STAFF",
+      "details": "APPROVE on Subject: CS8661 - Internet Programming Laboratory for Kavitha M (732423104002)",
+      "timestamp": "2026-09-17T05:47:32.596Z"
+    },
+    {
+      "id": "log_mu53yapr_rpotj",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "fac.acc.o1",
+      "performedByRole": "STAFF",
+      "details": "APPROVE on Subject: CS8661 - Internet Programming Laboratory for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:47:30.111Z"
+    },
+    {
+      "id": "log_mu53x57c_ovmgy",
+      "action": "CLEARANCE_APPROVE",
+      "performedBy": "staff_lib",
+      "performedByRole": "STAFF",
+      "details": "APPROVE on Subject: CS8651 - Internet Programming for Elavarasan R (732423104001)",
+      "timestamp": "2026-09-17T05:46:36.312Z"
+    },
+    {
+      "id": "log_mu53vyah_jo96m",
+      "action": "UPDATE_USER",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated user rose (STUDENT)",
+      "timestamp": "2026-09-17T05:45:40.697Z"
+    },
+    {
+      "id": "log_mu53uz9p_rtx7x",
+      "action": "UPDATE_SUBJECT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated subject ME8594 (Applied Hydraulics & Pneumatics), allocated to kumar",
+      "timestamp": "2026-09-17T05:44:55.309Z"
+    },
+    {
+      "id": "log_mu53uqdn_yqu3h",
+      "action": "UPDATE_SUBJECT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated subject EC8395 (Communication Engineering), allocated to Mr. M. Suresh",
+      "timestamp": "2026-09-17T05:44:43.787Z"
+    },
+    {
+      "id": "log_mu53ujwm_u7o2x",
+      "action": "UPDATE_SUBJECT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated subject CS8691 (Artificial Intelligence & Machine Learning), allocated to Prof. S. Priya",
+      "timestamp": "2026-09-17T05:44:35.398Z"
+    },
+    {
+      "id": "log_mu53ubkg_blzu8",
+      "action": "UPDATE_SUBJECT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated subject CS8661 (Internet Programming Laboratory), allocated to kumar",
+      "timestamp": "2026-09-17T05:44:24.592Z"
+    },
+    {
+      "id": "log_mu53u4kv_qret7",
+      "action": "UPDATE_SUBJECT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated subject CS8651 (Internet Programming), allocated to Mr. M. Suresh",
+      "timestamp": "2026-09-17T05:44:15.535Z"
+    },
+    {
+      "id": "log_mu53tltj_uehwi",
+      "action": "UPDATE_USER",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Updated user kumar (STAFF)",
+      "timestamp": "2026-09-17T05:43:51.223Z"
+    },
+    {
+      "id": "log_mu53r0no_ozuoz",
+      "action": "ALLOCATE_STAFF",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Allocated staff kumar (FAC-ACC-O1) for Accounts & Fees Section",
+      "timestamp": "2026-09-17T05:41:50.484Z"
+    },
+    {
+      "id": "log_mu53ouke_q7whc",
+      "action": "CREATE_HOD",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Created HOD naveen for cyber security",
+      "timestamp": "2026-09-17T05:40:09.278Z"
+    },
+    {
+      "id": "log_mu53ouke_b4ckd",
+      "action": "CREATE_DEPARTMENT",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Auto-created custom department cyber security (CS)",
+      "timestamp": "2026-09-17T05:40:09.278Z"
+    },
+    {
+      "id": "log_mu53n94f_ly6a2",
+      "action": "CREATE_HOD",
+      "performedBy": "admin",
+      "performedByRole": "ADMIN",
+      "details": "Created HOD ramesh for Electronics and Communication Engineering",
+      "timestamp": "2026-09-17T05:38:54.831Z"
+    },
     {
       "id": "log_mu51tinx_qatgd",
       "action": "SYSTEM_INITIALIZED",

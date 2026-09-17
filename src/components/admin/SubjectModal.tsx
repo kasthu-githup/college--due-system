@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { Subject, Department, User } from '../../types';
 import { BookOpen, X, AlertCircle, CheckCircle2, UserCheck, RotateCcw } from 'lucide-react';
 import { SelectOrTypeInput, SelectOption } from '../common/SelectOrTypeInput';
+import { api } from '../../lib/api';
+
 
 interface SubjectModalProps {
   isOpen: boolean;
@@ -107,31 +109,22 @@ export const SubjectModal: React.FC<SubjectModalProps> = ({
     setError(null);
 
     try {
-      const url = subjectToEdit ? `/api/subjects/${subjectToEdit.id}` : '/api/subjects';
-      const method = subjectToEdit ? 'PUT' : 'POST';
+      const payload = {
+        code: code.trim().toUpperCase(),
+        name: name.trim(),
+        departmentId,
+        semester: Number(semester) || 1,
+        type,
+        credits: Number(credits) || 3,
+        batchYear: batchYear.trim(),
+        assignedStaffId: assignedStaffId || undefined,
+        description: description.trim(),
+      };
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          code: code.trim().toUpperCase(),
-          name: name.trim(),
-          departmentId,
-          semester: Number(semester) || 1,
-          type,
-          credits: Number(credits) || 3,
-          batchYear: batchYear.trim(),
-          assignedStaffId: assignedStaffId || undefined,
-          description: description.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to save subject allocation');
+      if (subjectToEdit) {
+        await api.updateSubject(subjectToEdit.id, payload, token);
+      } else {
+        await api.addSubject(payload, token);
       }
 
       onSaved();

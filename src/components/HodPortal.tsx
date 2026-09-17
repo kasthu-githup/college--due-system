@@ -22,6 +22,9 @@ import {
 } from 'lucide-react';
 import { NoDueCertificate } from './NoDueCertificate';
 import { EditUserModal } from './admin/EditUserModal';
+import { ConfirmDialog } from './common/ConfirmDialog';
+import { api } from '../lib/api';
+
 
 export const HodPortal: React.FC = () => {
   const { token, user } = useAuth();
@@ -51,25 +54,37 @@ export const HodPortal: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
+  // Staff delete confirmation state
+  const [staffToDelete, setStaffToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletingStaff, setIsDeletingStaff] = useState(false);
+
+  // HOD Raise Due Modal state
+  const [hodDueModal, setHodDueModal] = useState<{
+    isOpen: boolean;
+    studentClearanceId: string;
+    itemId: string;
+    studentName: string;
+    amount: string;
+    reason: string;
+    remarks: string;
+  } | null>(null);
+  const [isSubmittingDue, setIsSubmittingDue] = useState(false);
+
   const fetchHodData = async () => {
     try {
       setLoading(true);
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const [staffRes, clrRes] = await Promise.all([
-        fetch('/api/users?role=STAFF', { headers }),
-        fetch('/api/clearances', { headers }),
+      const [allUsers, clrData] = await Promise.all([
+        api.getUsers(token),
+        api.getClearances(token),
       ]);
 
-      if (staffRes.ok) {
-        const allStaff: User[] = await staffRes.json();
-        // HOD sees staff for their department
-        const myDeptStaff = allStaff.filter(s => s.departmentId === user?.departmentId);
+      if (allUsers) {
+        const myDeptStaff = allUsers.filter(s => s.role === 'STAFF' && s.departmentId === user?.departmentId);
         setStaffList(myDeptStaff);
       }
 
-      if (clrRes.ok) {
-        setClearances(await clrRes.json());
+      if (clrData) {
+        setClearances(clrData);
       }
     } catch (err) {
       console.error('Error fetching HOD data:', err);
@@ -89,25 +104,16 @@ export const HodPortal: React.FC = () => {
     setFormSuccess(null);
 
     try {
-      const res = await fetch('/api/hod/staff', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          staffId,
-          name: staffName,
-          email: staffEmail,
-          password: staffPassword,
-          designation: staffDesignation,
-          clearanceScope: staffScope || `${user?.departmentName || 'Department'} Labs & Equipment`,
-          phone: staffPhone,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to allocate staff');
+      const data = await api.addStaff({
+        staffId: staffId.trim().toUpperCase(),
+        name: staffName.trim(),
+        email: staffEmail.trim(),
+        password: staffPassword.trim(),
+        departmentId: user?.departmentId || '',
+        designation: staffDesignation.trim(),
+        clearanceScope: staffScope.trim() || `${user?.departmentName || 'Department'} Labs & Equipment`,
+        phone: staffPhone.trim(),
+      }, token);
 
       setFormSuccess(`Staff member ${data.name} (${data.staffId}) allocated successfully. They can now log in.`);
       setShowAddStaffModal(false);
@@ -122,74 +128,83 @@ export const HodPortal: React.FC = () => {
     }
   };
 
-  // Remove Staff
-  const handleRemoveStaff = async (staffMemberId: string, name: string) => {
-    if (!confirm(`Are you sure you want to revoke authorization for staff member "${name}"?`)) return;
+  // Remove Staff with Confirm Dialog
+  const promptRemoveStaff = (staffMemberId: string, name: string) => {
+    setStaffToDelete({ id: staffMemberId, name });
+  };
 
+  const confirmRemoveStaff = async () => {
+    if (!staffToDelete) return;
     try {
-      const res = await fetch(`/api/users/${staffMemberId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        const d = await res.json();
-        alert(d.error || 'Failed to revoke staff access');
-        return;
-      }
+      setIsDeletingStaff(true);
+      await api.deleteUser(staffToDelete.id, token);
+      setFormSuccess(`Staff member "${staffToDelete.name}" revoked successfully.`);
+      setStaffToDelete(null);
       fetchHodData();
     } catch (err: any) {
-      alert(err.message);
+      setFormError(err.message);
+    } finally {
+      setIsDeletingStaff(false);
     }
   };
 
-  // HOD Final Sign-off
-  const handleHodSignoff = async (studentClearanceId: string, itemId: string, action: 'APPROVE' | 'RAISE_DUE') => {
+  // HOD Final Sign-off: Direct Approval
+  const handleHodApprove = async (studentClearanceId: string, itemId: string) => {
     try {
-      let dueAmount = 0;
-      let dueReason = '';
-      let remarks = 'Approved by Head of Department';
-
-      if (action === 'RAISE_DUE') {
-        const amtStr = prompt('Enter Department Due / Fine Amount (₹):', '500');
-        if (!amtStr) return;
-        dueAmount = Number(amtStr) || 0;
-        dueReason = prompt('Enter reason for due (e.g. Incomplete project record, outstanding departmental fine):') || 'Departmental dues pending';
-        remarks = dueReason;
-      }
-
-      const res = await fetch('/api/clearances/action', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          studentClearanceId,
-          itemId,
-          action,
-          dueAmount,
-          dueReason,
-          remarks,
-        }),
-      });
-
-      if (!res.ok) {
-        const d = await res.json();
-        alert(d.error || 'Failed to update clearance');
-        return;
-      }
-
+      await api.clearanceAction({
+        studentClearanceId,
+        itemId,
+        action: 'APPROVE',
+        remarks: 'Approved by Head of Department',
+      }, token);
+      setFormSuccess('Checkpoint approved successfully.');
       fetchHodData();
     } catch (e: any) {
-      alert(e.message);
+      setFormError(e.message);
+    }
+  };
+
+  // Open HOD modal for raising departmental due
+  const openHodDueModal = (studentClearanceId: string, itemId: string, studentName: string) => {
+    setHodDueModal({
+      isOpen: true,
+      studentClearanceId,
+      itemId,
+      studentName,
+      amount: '500',
+      reason: 'Departmental dues / pending lab records',
+      remarks: '',
+    });
+  };
+
+  // Submit HOD Due
+  const handleHodSubmitDue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hodDueModal) return;
+    try {
+      setIsSubmittingDue(true);
+      await api.clearanceAction({
+        studentClearanceId: hodDueModal.studentClearanceId,
+        itemId: hodDueModal.itemId,
+        action: 'RAISE_DUE',
+        dueAmount: Number(hodDueModal.amount) || 0,
+        dueReason: hodDueModal.reason,
+        remarks: hodDueModal.remarks || hodDueModal.reason,
+      }, token);
+      setFormSuccess(`Department due of ₹${hodDueModal.amount} raised for ${hodDueModal.studentName}.`);
+      setHodDueModal(null);
+      fetchHodData();
+    } catch (e: any) {
+      setFormError(e.message);
+    } finally {
+      setIsSubmittingDue(false);
     }
   };
 
   // Submit HOD Sign-off and Immediately Open Certificate for Printing
   const handleHodSubmitAndPrint = async (clr: StudentClearanceRecord, hodCheckpointId: string) => {
     try {
-      await handleHodSignoff(clr.id, hodCheckpointId, 'APPROVE');
+      await handleHodApprove(clr.id, hodCheckpointId);
       const updatedClr: StudentClearanceRecord = {
         ...clr,
         items: clr.items.map((i) =>
@@ -213,7 +228,7 @@ export const HodPortal: React.FC = () => {
       setAutoPrintCert(true);
       setSelectedCertClearance(updatedClr);
     } catch (err: any) {
-      alert('Error updating and printing certificate: ' + err.message);
+      setFormError('Error updating and printing certificate: ' + err.message);
     }
   };
 
@@ -417,7 +432,7 @@ export const HodPortal: React.FC = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleRemoveStaff(st.id, st.name)}
+                            onClick={() => promptRemoveStaff(st.id, st.name)}
                             className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                             title="Revoke Staff Authorization"
                           >
@@ -505,7 +520,7 @@ export const HodPortal: React.FC = () => {
                               )}
                               <button
                                 type="button"
-                                onClick={() => handleHodSignoff(clr.id, hodCheckpoint.id, 'APPROVE')}
+                                onClick={() => handleHodApprove(clr.id, hodCheckpoint.id)}
                                 className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-xs font-bold transition shadow-xs cursor-pointer flex items-center space-x-1"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -524,7 +539,7 @@ export const HodPortal: React.FC = () => {
                               )}
                               <button
                                 type="button"
-                                onClick={() => handleHodSignoff(clr.id, hodCheckpoint.id, 'RAISE_DUE')}
+                                onClick={() => openHodDueModal(clr.id, hodCheckpoint.id, clr.studentName)}
                                 className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded text-xs font-bold transition cursor-pointer"
                               >
                                 Raise Due
@@ -816,6 +831,100 @@ export const HodPortal: React.FC = () => {
             setAutoPrintCert(false);
           }}
         />
+      )}
+
+      {/* Staff Revoke Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!staffToDelete}
+        title="Revoke Staff Authorization"
+        message={`Are you sure you want to revoke authorization for staff member "${staffToDelete?.name}"?\n\nThis will remove their faculty login access.`}
+        confirmText="Revoke Authorization"
+        isLoading={isDeletingStaff}
+        onConfirm={confirmRemoveStaff}
+        onClose={() => setStaffToDelete(null)}
+      />
+
+      {/* HOD Raise Due Modal */}
+      {hodDueModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-xl max-w-md w-full border border-stone-200 shadow-2xl p-6 relative">
+            <button
+              type="button"
+              onClick={() => setHodDueModal(null)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <h3 className="text-base font-bold text-stone-900">
+              Raise Departmental Due
+            </h3>
+            <p className="text-xs text-stone-500 mt-1">
+              Issue an outstanding departmental fee or pending lab record requirement for <strong className="text-stone-800">{hodDueModal.studentName}</strong>.
+            </p>
+
+            <form onSubmit={handleHodSubmitDue} className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                  Due / Fine Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={hodDueModal.amount}
+                  onChange={(e) => setHodDueModal({ ...hodDueModal, amount: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-600 font-mono"
+                  placeholder="e.g. 500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                  Reason for Due
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={hodDueModal.reason}
+                  onChange={(e) => setHodDueModal({ ...hodDueModal, reason: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  placeholder="e.g. Incomplete project record, broken equipment fine"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                  Internal Remarks (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={hodDueModal.remarks}
+                  onChange={(e) => setHodDueModal({ ...hodDueModal, remarks: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  placeholder="Additional instructions for student or staff..."
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end space-x-2 border-t border-stone-100">
+                <button
+                  type="button"
+                  onClick={() => setHodDueModal(null)}
+                  disabled={isSubmittingDue}
+                  className="px-3.5 py-2 text-xs font-semibold text-stone-600 hover:text-stone-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingDue}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition disabled:opacity-50"
+                >
+                  {isSubmittingDue ? 'Issuing Due...' : 'Issue Department Due'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

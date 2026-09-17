@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { Subject, User } from '../../types';
 import { UserCheck, X, AlertCircle, RotateCcw } from 'lucide-react';
 import { SelectOrTypeInput, SelectOption } from '../common/SelectOrTypeInput';
+import { api } from '../../lib/api';
+
 
 interface AllocateStaffModalProps {
   isOpen: boolean;
@@ -61,22 +63,7 @@ export const AllocateStaffModal: React.FC<AllocateStaffModalProps> = ({
     setError(null);
 
     try {
-      const res = await fetch(`/api/subjects/${subject.id}/allocate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          staffId: selectedStaffId, // empty string will deallocate, string will allocate
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update faculty allocation');
-      }
-
+      await api.allocateStaffToSubject(subject.id, selectedStaffId, token);
       onAllocated();
       onClose();
     } catch (err: any) {

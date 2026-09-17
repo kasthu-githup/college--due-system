@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Department, User } from '../../types';
 import { X, Building2, Save, AlertCircle, RotateCcw } from 'lucide-react';
 import { SelectOrTypeInput, SelectOption } from '../common/SelectOrTypeInput';
+import { api } from '../../lib/api';
+
 
 interface DepartmentModalProps {
   department?: Department | null; // If null, mode is Add
@@ -54,26 +56,20 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
     setSaving(true);
 
     try {
-      const url = isEditing ? `/api/departments/${department!.id}` : '/api/departments';
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      let data: Department;
+      if (isEditing) {
+        data = await api.updateDepartment(department!.id, {
           code: code.trim().toUpperCase(),
           name: name.trim(),
           description: description.trim(),
-          hodId: isEditing ? hodId : undefined,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to save department');
+          hodId: hodId || undefined,
+        }, token);
+      } else {
+        data = await api.addDepartment({
+          code: code.trim().toUpperCase(),
+          name: name.trim(),
+          description: description.trim(),
+        }, token);
       }
 
       onSaved(data);

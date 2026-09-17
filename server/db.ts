@@ -567,6 +567,103 @@ class Database {
     return { success: false, message: 'Unknown reset mode.' };
   }
 
+  public exportData(): DatabaseSchema {
+    return JSON.parse(JSON.stringify(this.data));
+  }
+
+  public importData(incoming: Partial<DatabaseSchema>): { success: boolean; message: string; count: any } {
+    if (!incoming || typeof incoming !== 'object') {
+      throw new Error('Invalid database JSON format');
+    }
+
+    if (Array.isArray(incoming.departments) && incoming.departments.length > 0) {
+      this.data.departments = incoming.departments;
+    }
+    if (Array.isArray(incoming.users) && incoming.users.length > 0) {
+      this.data.users = incoming.users;
+    }
+    if (Array.isArray(incoming.clearances) && incoming.clearances.length > 0) {
+      this.data.clearances = incoming.clearances;
+    }
+    if (Array.isArray(incoming.subjects) && incoming.subjects.length > 0) {
+      this.data.subjects = incoming.subjects;
+    }
+    if (Array.isArray(incoming.auditLogs)) {
+      this.data.auditLogs = incoming.auditLogs;
+    }
+
+    this.saveData();
+    return {
+      success: true,
+      message: 'Database imported and restored successfully.',
+      count: {
+        users: this.data.users.length,
+        clearances: this.data.clearances.length,
+        departments: this.data.departments.length,
+        subjects: this.data.subjects.length,
+      }
+    };
+  }
+
+  public syncData(incoming: Partial<DatabaseSchema>): DatabaseSchema {
+    if (!incoming || typeof incoming !== 'object') return this.data;
+
+    let hasChanges = false;
+
+    // Merge users if missing
+    if (Array.isArray(incoming.users)) {
+      for (const u of incoming.users) {
+        const existingIdx = this.data.users.findIndex(x => x.id === u.id || (u.rollNo && x.rollNo === u.rollNo) || (u.username && x.username === u.username));
+        if (existingIdx === -1) {
+          this.data.users.push(u);
+          hasChanges = true;
+        }
+      }
+    }
+
+    // Merge departments
+    if (Array.isArray(incoming.departments)) {
+      for (const d of incoming.departments) {
+        if (!this.data.departments.some(x => x.id === d.id || x.code === d.code)) {
+          this.data.departments.push(d);
+          hasChanges = true;
+        }
+      }
+    }
+
+    // Merge clearances
+    if (Array.isArray(incoming.clearances)) {
+      for (const c of incoming.clearances) {
+        const existingIdx = this.data.clearances.findIndex(x => x.id === c.id || x.studentId === c.studentId || (x.studentRollNo && x.studentRollNo === c.studentRollNo));
+        if (existingIdx === -1) {
+          this.data.clearances.push(c);
+          hasChanges = true;
+        } else {
+          if (c.updatedAt && (!this.data.clearances[existingIdx].updatedAt || c.updatedAt > this.data.clearances[existingIdx].updatedAt)) {
+            this.data.clearances[existingIdx] = c;
+            hasChanges = true;
+          }
+        }
+      }
+    }
+
+    // Merge subjects
+    if (Array.isArray(incoming.subjects)) {
+      for (const s of incoming.subjects) {
+        if (!this.data.subjects.some(x => x.id === s.id || x.code === s.code)) {
+          this.data.subjects.push(s);
+          hasChanges = true;
+        }
+      }
+    }
+
+    if (hasChanges) {
+      this.saveData();
+    }
+
+    return this.data;
+  }
+
   // Auth & Users
   public findUserByCredentials(usernameOrEmail: string, passwordAttempt: string): User | null {
     const cleanIdentifier = (usernameOrEmail || '').trim().toLowerCase();

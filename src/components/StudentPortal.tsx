@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { NoDueCertificate } from './NoDueCertificate';
+import { api } from '../lib/api';
+
 
 export const StudentPortal: React.FC = () => {
   const { token, user } = useAuth();
@@ -34,12 +36,8 @@ export const StudentPortal: React.FC = () => {
   const fetchMyClearance = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/clearances/my', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        const data: StudentClearanceRecord = await res.json();
+      const data = await api.getMyClearance(token);
+      if (data) {
         setClearance(data);
 
         // If completed, trigger confetti once
@@ -68,21 +66,12 @@ export const StudentPortal: React.FC = () => {
 
     try {
       setPayLoading(true);
-      const res = await fetch('/api/clearances/pay-due', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          studentClearanceId: clearance.id,
-          itemId: payingItem.id,
-          transactionNote: paymentNote || `UPI/Card Payment: ₹${payingItem.dueAmount}`,
-        }),
-      });
-
-      const updated = await res.json();
-      if (!res.ok) throw new Error(updated.error || 'Payment settlement failed');
+      const updated = await api.payDue(
+        clearance.id,
+        payingItem.id,
+        paymentNote || `UPI/Card Payment: ₹${payingItem.dueAmount}`,
+        token
+      );
 
       setClearance(updated);
       setPaySuccess(`Successfully settled ₹${payingItem.dueAmount} for ${payingItem.title}. Clearance updated!`);

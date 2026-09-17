@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Department, User, StudentClearanceRecord, SystemStats, Subject } from '../types';
 import {
@@ -28,6 +28,8 @@ import {
   BookOpen,
   Award,
   Printer,
+  Download,
+  Upload,
 } from 'lucide-react';
 import { NoDueCertificate } from './NoDueCertificate';
 import { EditUserModal } from './admin/EditUserModal';
@@ -37,6 +39,8 @@ import { ClearanceDetailModal } from './admin/ClearanceDetailModal';
 import { SubjectModal } from './admin/SubjectModal';
 import { AllocateStaffModal } from './admin/AllocateStaffModal';
 import { SelectOrTypeInput, SelectOption } from './common/SelectOrTypeInput';
+import { ConfirmDialog } from './common/ConfirmDialog';
+import { api } from '../lib/api';
 
 interface AdminPortalProps {
   onOpenResetModal: () => void;
@@ -44,6 +48,8 @@ interface AdminPortalProps {
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) => {
   const { token, user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const [activeTab, setActiveTab] = useState<'students' | 'hods' | 'staffs' | 'departments' | 'subjects' | 'clearances' | 'logs'>('students');
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -73,6 +79,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   const [inspectingClearance, setInspectingClearance] = useState<StudentClearanceRecord | null>(null);
   const [selectedCertClearance, setSelectedCertClearance] = useState<StudentClearanceRecord | null>(null);
   const [autoPrintCert, setAutoPrintCert] = useState(false);
+
+  // Reusable confirmation dialog state for deletes
+  const [confirmDialogState, setConfirmDialogState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    onConfirm: () => Promise<void>;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Delete',
+    onConfirm: async () => {},
+    isLoading: false,
+  });
 
   // Password visibility map (userId -> boolean)
   const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
@@ -111,28 +134,25 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   const fetchData = async () => {
     try {
       setLoading(true);
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const [statsRes, deptsRes, usersRes, clrRes, logsRes, subjRes] = await Promise.all([
-        fetch('/api/stats', { headers }),
-        fetch('/api/departments'),
-        fetch('/api/users', { headers }),
-        fetch('/api/clearances', { headers }),
-        fetch('/api/audit-logs', { headers }),
-        fetch('/api/subjects', { headers }),
+      const [statsData, deptsData, usersData, clrData, logsData, subjData] = await Promise.all([
+        api.getStats(token),
+        api.getDepartments(),
+        api.getUsers(token),
+        api.getClearances(token),
+        api.getAuditLogs(token),
+        api.getSubjects(token),
       ]);
 
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (deptsRes.ok) {
-        const d = await deptsRes.json();
-        setDepartments(d);
-        if (d.length > 0 && !hodDeptId) setHodDeptId(d[0].id);
-        if (d.length > 0 && !studDeptId) setStudDeptId(d[0].id);
+      if (statsData) setStats(statsData);
+      if (deptsData) {
+        setDepartments(deptsData);
+        if (deptsData.length > 0 && !hodDeptId) setHodDeptId(deptsData[0].id);
+        if (deptsData.length > 0 && !studDeptId) setStudDeptId(deptsData[0].id);
       }
-      if (usersRes.ok) setUsersList(await usersRes.json());
-      if (clrRes.ok) setClearances(await clrRes.json());
-      if (logsRes.ok) setAuditLogs(await logsRes.json());
-      if (subjRes.ok) setSubjects(await subjRes.json());
+      if (usersData) setUsersList(usersData);
+      if (clrData) setClearances(clrData);
+      if (logsData) setAuditLogs(logsData);
+      if (subjData) setSubjects(subjData);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -144,20 +164,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
     fetchData();
   }, [token]);
 
-  const handleDeleteSubject = async (subjectId: string, subjectCode: string, subjectName: string) => {
-    if (!confirm(`Are you sure you want to delete subject ${subjectCode} - "${subjectName}"?`)) return;
-    try {
-      const res = await fetch(`/api/subjects/${subjectId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete subject');
-      setFormSuccess(`Subject ${subjectCode} removed successfully.`);
-      fetchData();
-    } catch (err: any) {
-      setFormError(err.message);
-    }
+  const promptDeleteSubject = (subjectId: string, subjectCode: string, subjectName: string) => {
+    setConfirmDialogState({
+      isOpen: true,
+      title: `Delete Subject: ${subjectCode}`,
+      message: `Are you sure you want to delete subject "${subjectCode} - ${subjectName}"?\n\nThis will remove the course curriculum and any faculty allocations.`,
+      confirmText: 'Delete Subject',
+      isLoading: false,
+      onConfirm: async () => {
+        try {
+          setConfirmDialogState((prev) => ({ ...prev, isLoading: true }));
+          await api.deleteSubject(subjectId, token);
+          setFormSuccess(`Subject ${subjectCode} removed successfully.`);
+          setConfirmDialogState((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          fetchData();
+        } catch (err: any) {
+          setFormError(err.message);
+          setConfirmDialogState((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   const togglePasswordVisibility = (userId: string) => {
@@ -174,24 +200,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
     setFormSuccess(null);
 
     try {
-      const res = await fetch('/api/admin/hod', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: hodName.trim(),
-          username: hodUsername.trim().toLowerCase(),
-          email: hodEmail.trim(),
-          password: hodPassword.trim(),
-          departmentId: hodDeptId,
-          phone: hodPhone.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create HOD');
+      const data = await api.addHod({
+        name: hodName.trim(),
+        username: hodUsername.trim().toLowerCase(),
+        email: hodEmail.trim(),
+        password: hodPassword.trim(),
+        departmentId: hodDeptId,
+        phone: hodPhone.trim(),
+      }, token);
 
       setFormSuccess(`HOD ${data.name} appointed successfully.`);
       setShowAddHodModal(false);
@@ -212,29 +228,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
     setFormSuccess(null);
 
     try {
-      const res = await fetch('/api/admin/student', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: studName.trim(),
-          rollNo: studRollNo.trim().toUpperCase(),
-          registerNo: studRegNo.trim(),
-          email: studEmail.trim(),
-          password: studPassword.trim(),
-          departmentId: studDeptId,
-          degree: studDegree.trim(),
-          batchYear: studBatch.trim(),
-          semester: Number(studSemester),
-          isHosteler: studHosteler,
-          phone: studPhone.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to register student');
+      const data = await api.addStudent({
+        name: studName.trim(),
+        rollNo: studRollNo.trim().toUpperCase(),
+        registerNo: studRegNo.trim(),
+        email: studEmail.trim(),
+        password: studPassword.trim(),
+        departmentId: studDeptId,
+        degree: studDegree.trim(),
+        batchYear: studBatch.trim(),
+        semester: Number(studSemester),
+        isHosteler: studHosteler,
+        phone: studPhone.trim(),
+      }, token);
 
       setFormSuccess(`Student ${data.name} (${data.rollNo}) registered successfully. Password: "${studPassword.trim()}"`);
       setShowAddStudentModal(false);
@@ -269,23 +275,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
           ) || departments[0];
 
           if (roll && name && targetDept) {
-            await fetch('/api/admin/student', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                rollNo: roll.toUpperCase(),
-                name,
-                email: email || `${roll.toLowerCase()}@college.edu`,
-                departmentId: targetDept.id,
-                password: pass || 'student123',
-                degree: 'B.E. Engineering',
-                batchYear: '2021 - 2025',
-                semester: 8,
-              }),
-            });
+            await api.addStudent({
+              rollNo: roll.toUpperCase(),
+              name,
+              email: email || `${roll.toLowerCase()}@college.edu`,
+              departmentId: targetDept.id,
+              password: pass || 'student123',
+              degree: 'B.E. Engineering',
+              batchYear: '2021 - 2025',
+              semester: 8,
+            }, token);
             createdCount++;
           }
         }
@@ -303,48 +302,75 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   };
 
   // Handle Delete User (Student, HOD, or Staff)
-  const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`Are you sure you want to permanently delete user "${userName}"?\n\nThis will remove their login access and any associated clearance records.`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete user');
-
-      setFormSuccess(`User "${userName}" was successfully deleted.`);
-      fetchData();
-    } catch (err: any) {
-      setFormError(err.message);
-    }
+  const promptDeleteUser = (userId: string, userName: string, roleName: string = 'User') => {
+    setConfirmDialogState({
+      isOpen: true,
+      title: `Delete ${roleName}: ${userName}`,
+      message: `Are you sure you want to permanently delete "${userName}"?\n\nThis will revoke their login access and remove all associated clearance records. This action cannot be undone.`,
+      confirmText: `Delete ${roleName}`,
+      isLoading: false,
+      onConfirm: async () => {
+        try {
+          setConfirmDialogState((prev) => ({ ...prev, isLoading: true }));
+          await api.deleteUser(userId, token);
+          setFormSuccess(`${roleName} "${userName}" was successfully deleted.`);
+          setConfirmDialogState((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          fetchData();
+        } catch (err: any) {
+          setFormError(err.message);
+          setConfirmDialogState((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   // Handle Delete Department
-  const handleDeleteDepartment = async (deptId: string, deptName: string) => {
-    if (!confirm(`Are you sure you want to delete department "${deptName}"?\nNote: Departments with enrolled students cannot be deleted.`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/departments/${deptId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete department');
-
-      setFormSuccess(`Department "${deptName}" was successfully deleted.`);
-      fetchData();
-    } catch (err: any) {
-      setFormError(err.message);
-    }
+  const promptDeleteDepartment = (deptId: string, deptName: string) => {
+    setConfirmDialogState({
+      isOpen: true,
+      title: `Delete Department: ${deptName}`,
+      message: `Are you sure you want to delete department "${deptName}"?\n\nNote: Departments with enrolled students or allocated staff cannot be deleted.`,
+      confirmText: 'Delete Department',
+      isLoading: false,
+      onConfirm: async () => {
+        try {
+          setConfirmDialogState((prev) => ({ ...prev, isLoading: true }));
+          await api.deleteDepartment(deptId, token);
+          setFormSuccess(`Department "${deptName}" was successfully deleted.`);
+          setConfirmDialogState((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          fetchData();
+        } catch (err: any) {
+          setFormError(err.message);
+          setConfirmDialogState((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
+
+  const handleExportBackup = () => {
+    api.exportDatabase();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        const success = api.importDatabase(content);
+        if (success) {
+          setFormSuccess('Database backup imported successfully! System synchronized.');
+          fetchData();
+        } else {
+          setFormError('Failed to parse database backup file. Ensure it is valid JSON.');
+        }
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
 
   // Derived filtered user lists
   const students = usersList.filter((u) => u.role === 'STUDENT');
@@ -404,6 +430,31 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportFile}
+              accept=".json"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={handleExportBackup}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-semibold border border-stone-700 transition"
+              title="Download complete database backup as JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Backup (JSON)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-semibold border border-stone-700 transition"
+              title="Restore database from a saved JSON backup"
+            >
+              <Upload className="w-3.5 h-3.5 text-sky-400" />
+              <span>Restore Backup</span>
+            </button>
             <button
               type="button"
               onClick={onOpenResetModal}
@@ -414,6 +465,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
               <span>System Reset</span>
             </button>
           </div>
+
         </div>
 
         {/* Quick KPI Stats */}
@@ -776,7 +828,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
 
                               <button
                                 type="button"
-                                onClick={() => handleDeleteUser(s.id, s.name)}
+                                onClick={() => promptDeleteUser(s.id, s.name, 'Student')}
                                 className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                                 title="Delete Student"
                               >
@@ -886,7 +938,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteUser(h.id, h.name)}
+                                onClick={() => promptDeleteUser(h.id, h.name, 'HOD')}
                                 className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                                 title="Remove HOD"
                               >
@@ -993,7 +1045,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteUser(st.id, st.name)}
+                                onClick={() => promptDeleteUser(st.id, st.name, 'Staff Member')}
                                 className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                                 title="Revoke Staff"
                               >
@@ -1093,7 +1145,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDeleteDepartment(d.id, d.name)}
+                              onClick={() => promptDeleteDepartment(d.id, d.name)}
                               className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                               title="Delete Department"
                             >
@@ -1374,7 +1426,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteSubject(subj.id, subj.code, subj.name)}
+                                onClick={() => promptDeleteSubject(subj.id, subj.code, subj.name)}
                                 className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                                 title="Delete Subject"
                               >
@@ -2027,6 +2079,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
           }}
         />
       )}
+
+      {/* CONFIRMATION DIALOG FOR ALL DELETES */}
+      <ConfirmDialog
+        isOpen={confirmDialogState.isOpen}
+        title={confirmDialogState.title}
+        message={confirmDialogState.message}
+        confirmText={confirmDialogState.confirmText}
+        isLoading={confirmDialogState.isLoading}
+        onConfirm={confirmDialogState.onConfirm}
+        onClose={() => setConfirmDialogState((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

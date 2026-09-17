@@ -20,6 +20,8 @@ import {
   ArrowRight,
   RotateCcw
 } from 'lucide-react';
+import { api } from '../lib/api';
+
 
 interface StudentSubjectEntry {
   clr: StudentClearanceRecord;
@@ -50,45 +52,30 @@ export const StaffPortal: React.FC = () => {
   const fetchClearancesAndSubjects = async () => {
     try {
       setLoading(true);
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const [clrRes, mySubjRes, allSubjRes] = await Promise.all([
-        fetch('/api/clearances', { headers }),
-        user?.id ? fetch(`/api/subjects?staffId=${user.id}`, { headers }) : Promise.resolve(null),
-        fetch('/api/subjects', { headers }),
+      const [clrData, allSubjs] = await Promise.all([
+        api.getClearances(token),
+        api.getSubjects(token),
       ]);
 
-      if (clrRes.ok) {
-        const clrData: StudentClearanceRecord[] = await clrRes.json();
+      if (clrData) {
         setClearances(clrData);
       }
 
       let mySubjs: Subject[] = [];
-      if (mySubjRes && mySubjRes.ok) {
-        mySubjs = await mySubjRes.json();
-      }
+      if (allSubjs) {
+        setAllSubjects(allSubjs);
 
-      if (allSubjRes && allSubjRes.ok) {
-        const all: Subject[] = await allSubjRes.json();
-        setAllSubjects(all);
-
-        // Also check if any subject in all matches staff by name or code
-        if (mySubjs.length === 0 && user) {
-          const matched = all.filter(
+        if (user) {
+          const matched = allSubjs.filter(
             (s) =>
               (s.assignedStaffId && (s.assignedStaffId === user.id || s.assignedStaffId === user.staffId)) ||
               (s.assignedStaffName && s.assignedStaffName.toLowerCase() === user.name.toLowerCase())
           );
-          if (matched.length > 0) {
-            mySubjs = matched;
-          }
+          mySubjs = matched;
         }
       }
 
       setAssignedSubjects(mySubjs);
-      if (mySubjs.length > 0 && selectedSubjectFilter === 'ALL') {
-        // Keep 'ALL' or set default
-      }
     } catch (e) {
       console.error('Error loading staff clearances & subjects:', e);
     } finally {
@@ -112,33 +99,20 @@ export const StaffPortal: React.FC = () => {
   }) => {
     try {
       setIsSubmitting(true);
-      const res = await fetch('/api/clearances/action', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          studentClearanceId: params.studentClearanceId,
-          itemId: params.itemId,
-          action: params.action,
-          dueAmount: params.dueAmount,
-          dueReason: params.dueReason,
-          remarks:
-            params.remarks ||
-            (params.action === 'APPROVE'
-              ? `Approved by ${user?.name} (${user?.designation || 'Faculty'})`
-              : params.action === 'CLEAR_DUE'
-              ? `Due cleared by ${user?.name}`
-              : `Due raised by ${user?.name}`),
-        }),
-      });
-
-      if (!res.ok) {
-        const d = await res.json();
-        alert(d.error || 'Failed to update clearance action');
-        return;
-      }
+      await api.clearanceAction({
+        studentClearanceId: params.studentClearanceId,
+        itemId: params.itemId,
+        action: params.action,
+        dueAmount: params.dueAmount,
+        dueReason: params.dueReason,
+        remarks:
+          params.remarks ||
+          (params.action === 'APPROVE'
+            ? `Approved by ${user?.name} (${user?.designation || 'Faculty'})`
+            : params.action === 'CLEAR_DUE'
+            ? `Due cleared by ${user?.name}`
+            : `Due raised by ${user?.name}`),
+      }, token);
 
       const actionText =
         params.action === 'APPROVE'

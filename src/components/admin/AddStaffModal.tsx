@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Department, User } from '../../types';
 import { X, UserPlus, Save, AlertCircle, Eye, EyeOff, RotateCcw } from 'lucide-react';
 import { SelectOrTypeInput, SelectOption } from '../common/SelectOrTypeInput';
+import { api } from '../../lib/api';
+
 
 interface AddStaffModalProps {
   departments: Department[];
@@ -73,28 +75,16 @@ export const AddStaffModal: React.FC<AddStaffModalProps> = ({
     setSaving(true);
 
     try {
-      const res = await fetch('/api/hod/staff', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          staffId: staffId.trim().toUpperCase(),
-          name: name.trim(),
-          email: email.trim(),
-          password: password.trim(),
-          departmentId,
-          designation: designation.trim(),
-          clearanceScope: clearanceScope.trim() || 'Department Labs & Equipment',
-          phone: phone.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to allocate staff member');
-      }
+      const data = await api.addStaff({
+        staffId: staffId.trim().toUpperCase(),
+        name: name.trim(),
+        email: email.trim(),
+        password: password.trim(),
+        departmentId,
+        designation: designation.trim(),
+        clearanceScope: clearanceScope.trim() || 'Department Labs & Equipment',
+        phone: phone.trim(),
+      }, token);
 
       onSaved(data);
       onClose();

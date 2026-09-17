@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { User, Department } from '../../types';
 import { X, Eye, EyeOff, Save, KeyRound, UserCheck, ShieldAlert, RotateCcw } from 'lucide-react';
 import { SelectOrTypeInput, SelectOption } from '../common/SelectOrTypeInput';
+import { api } from '../../lib/api';
+
 
 interface EditUserModalProps {
   user: User;
@@ -121,20 +123,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         payload.username = username;
       }
 
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update user');
-      }
-
+      const data = await api.updateUser(user.id, payload, token);
       onSaved(data);
       onClose();
     } catch (err: any) {

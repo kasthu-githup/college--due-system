@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { NoDueCertificate } from '../NoDueCertificate';
 import { SelectOrTypeInput, SelectOption } from '../common/SelectOrTypeInput';
+import { ConfirmDialog } from '../common/ConfirmDialog';
+import { api } from '../../lib/api';
 
 interface ClearanceDetailModalProps {
   clearance: StudentClearanceRecord;
@@ -55,6 +57,10 @@ export const ClearanceDetailModal: React.FC<ClearanceDetailModalProps> = ({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Checkpoint delete confirmation state
+  const [deleteCheckpointTarget, setDeleteCheckpointTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeletingCheckpoint, setIsDeletingCheckpoint] = useState(false);
 
   const startEdit = (item: ClearanceItem) => {
     setEditingItem(item);
@@ -139,26 +145,24 @@ export const ClearanceDetailModal: React.FC<ClearanceDetailModalProps> = ({
     }
   };
 
-  const handleDeleteCheckpoint = async (itemId: string, title: string) => {
-    if (!confirm(`Are you sure you want to remove the clearance checkpoint "${title}"?`)) return;
-    setSaving(true);
+  const handleDeleteCheckpoint = (itemId: string, title: string) => {
+    setDeleteCheckpointTarget({ id: itemId, title });
+  };
+
+  const confirmDeleteCheckpoint = async () => {
+    if (!deleteCheckpointTarget) return;
+    setIsDeletingCheckpoint(true);
     setError(null);
 
     try {
-      const res = await fetch(`/api/clearances/${clearance.id}/items/${itemId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const updated = await res.json();
-      if (!res.ok) throw new Error(updated.error || 'Failed to delete checkpoint');
-
+      const updated = await api.deleteClearanceItem(clearance.id, deleteCheckpointTarget.id, token);
       setClearance(updated);
       onUpdated(updated);
+      setDeleteCheckpointTarget(null);
     } catch (err: any) {
       setError(err.message || 'Error deleting checkpoint');
     } finally {
-      setSaving(false);
+      setIsDeletingCheckpoint(false);
     }
   };
 
@@ -650,6 +654,17 @@ export const ClearanceDetailModal: React.FC<ClearanceDetailModalProps> = ({
             }}
           />
         )}
+
+        {/* CHECKPOINT DELETE CONFIRMATION MODAL */}
+        <ConfirmDialog
+          isOpen={!!deleteCheckpointTarget}
+          title={`Remove Checkpoint`}
+          message={`Are you sure you want to remove the clearance checkpoint "${deleteCheckpointTarget?.title}" for this student?\n\nThis will permanently remove this requirement from their clearance checklist.`}
+          confirmText="Remove Checkpoint"
+          isLoading={isDeletingCheckpoint}
+          onConfirm={confirmDeleteCheckpoint}
+          onClose={() => setDeleteCheckpointTarget(null)}
+        />
       </div>
     </div>
   );
