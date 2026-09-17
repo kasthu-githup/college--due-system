@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, CheckCircle2, AlertTriangle, RefreshCw, Server, ArrowRight, ShieldCheck, Copy, ExternalLink, X } from 'lucide-react';
+import { Database, CheckCircle2, AlertTriangle, RefreshCw, Server, ArrowRight, ShieldCheck, Copy, ExternalLink, X, Table, Users, GraduationCap, Building2, UserCheck, FileCheck } from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface RenderDatabaseModalProps {
@@ -38,7 +38,9 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
   if (!isOpen) return null;
 
   const isConnected = Boolean(status?.postgres?.isConnected);
+  const provider = status?.postgres?.provider || 'Neon PostgreSQL';
   const maskedUrl = status?.postgres?.maskedUrl || '';
+  const neonCounts = status?.postgres?.neonCounts;
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,14 +53,14 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
       if (result.success) {
         setNotice({
           type: 'success',
-          text: 'Render PostgreSQL Database connected and verified successfully! Tables initialized and data synchronized.',
+          text: `${provider} database connected and verified successfully! All tables initialized and synchronized.`,
         });
         setCustomUrl('');
         fetchStatus();
       } else {
         setNotice({
           type: 'error',
-          text: result.error || 'Failed to connect to Render PostgreSQL database. Please verify host and credentials.',
+          text: result.error || 'Failed to connect to database. Please verify host, database name, and credentials.',
         });
       }
     } catch (err: any) {
@@ -79,7 +81,7 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
       if (res.success) {
         setNotice({
           type: 'success',
-          text: 'Current data successfully synchronized to Render PostgreSQL!',
+          text: `Current data successfully synchronized to ${provider}! Relational tables updated.`,
         });
         fetchStatus();
       } else {
@@ -126,10 +128,10 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
             </div>
             <div>
               <h3 className="text-base font-bold text-stone-900 leading-tight">
-                Render Database Connection (PostgreSQL)
+                {isConnected ? `${provider} Connection` : 'Neon & PostgreSQL Database Connection'}
               </h3>
               <p className="text-xs text-stone-500 mt-0.5">
-                Manage cloud PostgreSQL database persistence for Render deployment
+                Real-time synchronization with NeonDB and PostgreSQL relational tables
               </p>
             </div>
           </div>
@@ -159,12 +161,12 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
                 )}
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider">
-                    {isConnected ? 'Render PostgreSQL Database Connected' : 'Running on Local Storage (Render DB Not Connected)'}
+                    {isConnected ? `${provider} Connected & Active` : 'Running on Local Storage (Cloud DB Not Connected)'}
                   </h4>
                   <p className="text-xs mt-0.5 opacity-90">
                     {isConnected
-                      ? 'All student clearances, records, and staff allocations are safely persisting in Render PostgreSQL.'
-                      : 'Data is temporarily stored in local container cache. Connect your Render PostgreSQL database for permanent cloud storage.'}
+                      ? `All student profiles, clearances, departments, and staff are actively synchronized with ${provider}.`
+                      : 'Data is temporarily stored in local container storage. Connect your NeonDB or PostgreSQL database for permanent cloud persistence.'}
                   </p>
                 </div>
               </div>
@@ -182,14 +184,14 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
             {isConnected && (
               <div className="mt-3 pt-3 border-t border-emerald-200/60 grid grid-cols-2 gap-2 text-[11px]">
                 <div>
-                  <span className="text-emerald-700/80 font-medium">Source:</span>{' '}
-                  <strong className="font-semibold text-emerald-900">
-                    {status?.postgres?.urlSource === 'env' ? 'Render Environment (DATABASE_URL)' : 'Direct Configuration'}
-                  </strong>
+                  <span className="text-emerald-700/80 font-medium">Provider:</span>{' '}
+                  <strong className="font-semibold text-emerald-900">{provider}</strong>
                 </div>
                 <div>
-                  <span className="text-emerald-700/80 font-medium">SSL Security:</span>{' '}
-                  <strong className="font-semibold text-emerald-900">Enabled (Self-Signed Render Cert)</strong>
+                  <span className="text-emerald-700/80 font-medium">Source:</span>{' '}
+                  <strong className="font-semibold text-emerald-900">
+                    {status?.postgres?.urlSource === 'env' ? 'Environment Variable (DATABASE_URL)' : 'Direct Configuration'}
+                  </strong>
                 </div>
                 {maskedUrl && (
                   <div className="col-span-2 truncate font-mono text-[10px] text-emerald-800 bg-emerald-100/60 px-2 py-1 rounded">
@@ -209,6 +211,62 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
             )}
           </div>
 
+          {/* Relational Table Sync Counters */}
+          {isConnected && neonCounts && (
+            <div className="bg-stone-50 border border-stone-200 rounded-xl p-3.5">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Table className="w-3.5 h-3.5 text-stone-600" />
+                  <span>NeonDB Synchronized Relational Tables</span>
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  Live in Neon
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2.5 rounded-lg border border-stone-200 flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-stone-500 block">users table</span>
+                    <span className="font-bold text-stone-900 font-mono">{neonCounts.users} rows</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-lg border border-stone-200 flex items-center space-x-2">
+                  <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-stone-500 block">students table</span>
+                    <span className="font-bold text-stone-900 font-mono">{neonCounts.students} rows</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-lg border border-stone-200 flex items-center space-x-2">
+                  <Building2 className="w-4 h-4 text-sky-600 shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-stone-500 block">departments</span>
+                    <span className="font-bold text-stone-900 font-mono">{neonCounts.departments} rows</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-lg border border-stone-200 flex items-center space-x-2">
+                  <UserCheck className="w-4 h-4 text-purple-600 shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-stone-500 block">staff table</span>
+                    <span className="font-bold text-stone-900 font-mono">{neonCounts.staff} rows</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-lg border border-stone-200 flex items-center space-x-2">
+                  <FileCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-stone-500 block">no_due_requests</span>
+                    <span className="font-bold text-stone-900 font-mono">{neonCounts.noDueRequests} rows</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Feedback notice */}
           {notice && (
             <div className={`p-3 rounded-lg text-xs font-medium ${
@@ -220,66 +278,32 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
             </div>
           )}
 
-          {/* Important guidance for Render URL types */}
+          {/* Setup Guidance */}
           <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-950 text-xs space-y-1.5">
             <div className="font-bold flex items-center space-x-1.5 text-sky-900">
               <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0" />
-              <span>External URL vs Internal URL (Render Database)</span>
+              <span>NeonDB & PostgreSQL Setup</span>
             </div>
             <p className="text-stone-700 leading-relaxed">
-              Render Database பக்கத்தில் இரண்டு URL-கள் இருக்கும்:
+              NeonDB (<code className="bg-sky-100/70 text-sky-900 px-1 py-0.5 rounded font-mono text-[10px]">ep-....neon.tech</code>) அல்லது Render External URL இணைக்கப்பட்டால்:
             </p>
             <ul className="list-disc list-inside text-stone-600 space-y-1 pl-1">
               <li>
-                <strong className="text-stone-900">External Database URL</strong> (முடிவு <code className="bg-sky-100/70 text-sky-900 px-1 py-0.5 rounded font-mono text-[10px]">.render.com</code>): இங்கிருந்து அல்லது Render-க்கு வெளியில் இருந்து இணைக்க இதை மட்டுமே பயன்படுத்த வேண்டும்!
+                நீங்கள் புதிதாக சேர்க்கும் மாணவர்கள், staff, மற்றும் clearance விபரங்கள் உடனடியாக <strong>NeonDB</strong>-ல் சேமிக்கப்படும்.
               </li>
               <li>
-                <strong className="text-stone-900">Internal Database URL</strong> (எ.கா. <code className="bg-stone-200 px-1 py-0.5 rounded font-mono text-[10px]">dpg-...:5432</code>): ஒரே Render Region-க்குள் உள்ள Render Web Service-க்கு மட்டுமே வேலை செய்யும்.
+                இரண்டு விதமான சேமிப்பும் நிகழ்கிறது: (1) Master Snapshot (<code className="font-mono text-[10px]">college_cnd_data</code>) மற்றும் (2) Relational அட்டவணைகள் (<code className="font-mono text-[10px]">users, students, departments, staff, no_due_requests</code>).
               </li>
             </ul>
-          </div>
-
-          {/* Setup Instructions for Render */}
-          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4">
-            <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
-              <Server className="w-3.5 h-3.5 text-stone-600" />
-              <span>Render Dashboard-ல் எவ்வாறு அமைப்பது? (2 வழிகள்)</span>
-            </h4>
-            <div className="space-y-3 text-xs text-stone-600">
-              <div>
-                <p className="font-semibold text-stone-800">வழி 1: Render-ல் Deploy ஆன Web Service-க்கு (Production):</p>
-                <ol className="list-decimal list-inside space-y-1 mt-1 pl-1 leading-relaxed">
-                  <li>Render Dashboard &rarr; உங்கள் PostgreSQL &rarr; <strong>External Database URL</strong>-ஐ Copy செய்யவும்.</li>
-                  <li>உங்கள் Render Web Service &rarr; <strong>Environment</strong> Tab &rarr; <strong>Add Environment Variable</strong>:</li>
-                </ol>
-                <div className="my-1.5 flex items-center space-x-2 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 font-mono text-[11px] text-stone-800">
-                  <span className="font-bold text-indigo-600">DATABASE_URL</span>
-                  <span className="text-stone-400">=</span>
-                  <span className="text-stone-500 truncate">postgresql://user:password@...oregon-postgres.render.com/dbname</span>
-                  <button
-                    type="button"
-                    onClick={handleCopyEnvKey}
-                    className="ml-auto text-[10px] font-sans px-2 py-0.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded transition shrink-0"
-                  >
-                    {copied ? 'Copied Key!' : 'Copy Key'}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <p className="font-semibold text-stone-800">வழி 2: இந்த நேரடி Preview-விலும் உடனடியாக இணைக்க:</p>
-                <p className="text-stone-600 mt-0.5">கீழே உள்ள Input Box-ல் உங்கள் <strong>External Database URL</strong>-ஐ Paste செய்து <strong>Connect Database</strong> கொடுக்கவும்.</p>
-              </div>
-            </div>
           </div>
 
           {/* Direct Connection Input */}
           <div>
             <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-1.5">
-              Or Connect Database Directly Right Now
+              Connect or Change Database Connection String
             </h4>
             <p className="text-xs text-stone-500 mb-3">
-              Paste your Render PostgreSQL connection string here to immediately test, verify, and synchronize:
+              Paste your NeonDB or PostgreSQL connection URL here to immediately test, verify, and synchronize:
             </p>
             <form onSubmit={handleConnect} className="space-y-3">
               <div>
@@ -287,7 +311,7 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
                   type="text"
                   value={customUrl}
                   onChange={(e) => setCustomUrl(e.target.value)}
-                  placeholder="postgresql://user:password@dpg-xxxx-a.oregon-postgres.render.com/dbname"
+                  placeholder="postgresql://neondb_owner:npg_xxxx@ep-xxxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
                   className="w-full px-3.5 py-2.5 text-xs font-mono border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                 />
               </div>
@@ -300,11 +324,11 @@ export const RenderDatabaseModal: React.FC<RenderDatabaseModalProps> = ({ isOpen
                     className="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition flex items-center space-x-1.5"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-                    <span>{syncing ? 'Syncing...' : 'Sync Current Data to Database'}</span>
+                    <span>{syncing ? 'Syncing...' : 'Sync Current Data to NeonDB'}</span>
                   </button>
                 ) : (
                   <span className="text-[11px] text-stone-400">
-                    Supports Render Internal & External URLs
+                    Supports NeonDB, Render, Supabase & AWS RDS
                   </span>
                 )}
 

@@ -447,15 +447,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
               type="button"
               onClick={() => setIsRenderDbModalOpen(true)}
               className="inline-flex items-center space-x-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-semibold border border-stone-700 transition"
-              title="Configure and manage Render PostgreSQL Database connection"
+              title="Configure and manage NeonDB / PostgreSQL Database connection"
             >
               <Database className={`w-3.5 h-3.5 ${dbStatus?.postgres?.isConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
-              <span>Render DB</span>
+              <span>{dbStatus?.postgres?.isConnected ? (dbStatus.postgres.provider || 'Neon DB') : 'Database'}</span>
               <span
                 className={`w-2 h-2 rounded-full ${
                   dbStatus?.postgres?.isConnected ? 'bg-emerald-400 ring-2 ring-emerald-400/30' : 'bg-amber-400'
                 }`}
-                title={dbStatus?.postgres?.isConnected ? 'Render PostgreSQL Connected' : 'Local Storage Mode'}
+                title={dbStatus?.postgres?.isConnected ? `${dbStatus.postgres.provider || 'PostgreSQL'} Connected & Synced` : 'Local Storage Mode'}
               />
             </button>
             <button

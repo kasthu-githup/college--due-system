@@ -87,13 +87,14 @@ async function startServer() {
     res.json(db.getDepartments());
   });
 
-  app.post('/api/departments', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/departments', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { code, name, description } = req.body;
       if (!code || !name) {
         return res.status(400).json({ error: 'Code and Name are required' });
       }
       const dept = db.addDepartment(code, name, description || '', req.user!);
+      await db.flushPostgresDirectly();
       res.status(201).json(dept);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -101,10 +102,11 @@ async function startServer() {
   });
 
   // ADMIN: Update Department (Edit & Save)
-  app.put('/api/departments/:id', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.put('/api/departments/:id', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { code, name, description, hodId } = req.body;
       const dept = db.updateDepartment(req.params.id, { code, name, description, hodId }, req.user!);
+      await db.flushPostgresDirectly();
       res.json(dept);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -112,9 +114,10 @@ async function startServer() {
   });
 
   // ADMIN: Delete Department
-  app.delete('/api/departments/:id', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.delete('/api/departments/:id', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const success = db.deleteDepartment(req.params.id, req.user!);
+      await db.flushPostgresDirectly();
       res.json({ success });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -149,7 +152,7 @@ async function startServer() {
   });
 
   // ADMIN: Register new HOD
-  app.post('/api/admin/hod', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/admin/hod', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { name, username, email, password, departmentId, phone } = req.body;
       if (!name || !username || !email || !departmentId) {
@@ -160,6 +163,7 @@ async function startServer() {
         { name, username, email, password, departmentId, phone },
         req.user!
       );
+      await db.flushPostgresDirectly();
       res.status(201).json(hod);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -167,7 +171,7 @@ async function startServer() {
   });
 
   // ADMIN: Register new Student
-  app.post('/api/admin/student', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/admin/student', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { name, rollNo, registerNo, email, password, departmentId, degree, batchYear, semester, isHosteler, phone } = req.body;
       if (!name || !rollNo || !email || !departmentId) {
@@ -178,6 +182,7 @@ async function startServer() {
         { name, rollNo, registerNo, email, password, departmentId, degree, batchYear, semester, isHosteler, phone },
         req.user!
       );
+      await db.flushPostgresDirectly();
       res.status(201).json(student);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -185,7 +190,7 @@ async function startServer() {
   });
 
   // ADMIN: Bulk Register Students
-  app.post('/api/admin/student/bulk', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/admin/student/bulk', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { students } = req.body;
       if (!Array.isArray(students) || students.length === 0) {
@@ -204,6 +209,7 @@ async function startServer() {
         }
       }
 
+      await db.flushPostgresDirectly();
       res.status(201).json({ createdCount: created.length, created, errors });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -211,7 +217,7 @@ async function startServer() {
   });
 
   // HOD (or Admin): Allocate Staff Member for their department or Central Office
-  app.post('/api/hod/staff', authenticate, requireRole('HOD', 'ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/hod/staff', authenticate, requireRole('HOD', 'ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { name, staffId, email, password, designation, clearanceScope, departmentId, phone } = req.body;
       if (!name || !staffId || !email || !designation || !clearanceScope) {
@@ -222,6 +228,7 @@ async function startServer() {
         { name, staffId, email, password, designation, clearanceScope, departmentId, phone },
         req.user!
       );
+      await db.flushPostgresDirectly();
       res.status(201).json(staff);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -229,9 +236,10 @@ async function startServer() {
   });
 
   // UPDATE USER (Admin or HOD for own staff)
-  app.put('/api/users/:id', authenticate, requireRole('ADMIN', 'HOD'), (req: AuthenticatedRequest, res) => {
+  app.put('/api/users/:id', authenticate, requireRole('ADMIN', 'HOD'), async (req: AuthenticatedRequest, res) => {
     try {
       const updated = db.updateUser(req.params.id, req.body, req.user!);
+      await db.flushPostgresDirectly();
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -239,12 +247,13 @@ async function startServer() {
   });
 
   // DELETE USER (Admin or HOD for own staff)
-  app.delete('/api/users/:id', authenticate, requireRole('ADMIN', 'HOD'), (req: AuthenticatedRequest, res) => {
+  app.delete('/api/users/:id', authenticate, requireRole('ADMIN', 'HOD'), async (req: AuthenticatedRequest, res) => {
     try {
       const success = db.deleteUser(req.params.id, req.user!);
       if (!success) {
         return res.status(404).json({ error: 'User not found' });
       }
+      await db.flushPostgresDirectly();
       res.json({ success: true });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -415,7 +424,7 @@ async function startServer() {
   });
 
   // Approver Action: Approve, Raise Due, Clear Due, Reject
-  app.post('/api/clearances/action', authenticate, requireRole('STAFF', 'HOD', 'ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/clearances/action', authenticate, requireRole('STAFF', 'HOD', 'ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { studentClearanceId, itemId, action, dueAmount, dueReason, remarks } = req.body;
       if (!studentClearanceId || !itemId || !action) {
@@ -432,6 +441,7 @@ async function startServer() {
         actor: req.user!
       });
 
+      await db.flushPostgresDirectly();
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -439,7 +449,7 @@ async function startServer() {
   });
 
   // Checkpoint Direct Edit & Save (Admin, HOD, Staff)
-  app.put('/api/clearances/:clearanceId/items/:itemId', authenticate, requireRole('ADMIN', 'HOD', 'STAFF'), (req: AuthenticatedRequest, res) => {
+  app.put('/api/clearances/:clearanceId/items/:itemId', authenticate, requireRole('ADMIN', 'HOD', 'STAFF'), async (req: AuthenticatedRequest, res) => {
     try {
       const { title, status, dueAmount, dueReason, remarks } = req.body;
       const updated = db.updateClearanceItem({
@@ -452,6 +462,7 @@ async function startServer() {
         remarks,
         actor: req.user!,
       });
+      await db.flushPostgresDirectly();
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -459,7 +470,7 @@ async function startServer() {
   });
 
   // Add Custom Clearance Checkpoint (Admin or HOD)
-  app.post('/api/clearances/:clearanceId/items', authenticate, requireRole('ADMIN', 'HOD'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/clearances/:clearanceId/items', authenticate, requireRole('ADMIN', 'HOD'), async (req: AuthenticatedRequest, res) => {
     try {
       const { title, category, assignedScope, dueAmount, dueReason, remarks } = req.body;
       if (!title) return res.status(400).json({ error: 'Checkpoint title is required' });
@@ -471,6 +482,7 @@ async function startServer() {
         dueReason,
         remarks
       }, req.user!);
+      await db.flushPostgresDirectly();
       res.status(201).json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -478,9 +490,10 @@ async function startServer() {
   });
 
   // Delete Clearance Checkpoint (Admin only)
-  app.delete('/api/clearances/:clearanceId/items/:itemId', authenticate, requireRole('ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.delete('/api/clearances/:clearanceId/items/:itemId', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const updated = db.deleteClearanceCheckpoint(req.params.clearanceId, req.params.itemId, req.user!);
+      await db.flushPostgresDirectly();
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -488,7 +501,7 @@ async function startServer() {
   });
 
   // Student Pays / Settles Due Online
-  app.post('/api/clearances/pay-due', authenticate, requireRole('STUDENT', 'ADMIN'), (req: AuthenticatedRequest, res) => {
+  app.post('/api/clearances/pay-due', authenticate, requireRole('STUDENT', 'ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const { studentClearanceId, itemId, transactionNote } = req.body;
       if (!studentClearanceId || !itemId) {
@@ -496,6 +509,7 @@ async function startServer() {
       }
 
       const updated = db.payDue(studentClearanceId, itemId, req.user!, transactionNote);
+      await db.flushPostgresDirectly();
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

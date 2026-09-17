@@ -120,58 +120,72 @@ export const api = {
   },
 
   async addStudent(studentData: any, token?: string | null): Promise<User> {
-    // 1. Guaranteed client-side save immediately
-    const localStudent = clientDb.addStudent(studentData);
-
-    // 2. Persist to server backend
     try {
       const res = await fetch('/api/admin/student', {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify(studentData),
       });
-      if (res.ok) {
-        const serverStudent = await res.json();
-        return serverStudent;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed to register student (${res.status})`);
       }
-    } catch {
+      const serverStudent = await res.json();
+      clientDb.addStudent(serverStudent);
+      return serverStudent;
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch')) {
+        throw err;
+      }
       console.warn('[CND API] Backend student registration call offline. Preserved in local storage.');
+      return clientDb.addStudent(studentData);
     }
-    return localStudent;
   },
 
   async addStaff(staffData: any, token?: string | null): Promise<User> {
-    const localStaff = clientDb.addStaff(staffData);
     try {
       const res = await fetch('/api/hod/staff', {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify(staffData),
       });
-      if (res.ok) {
-        return await res.json();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed to create staff (${res.status})`);
       }
-    } catch {
+      const serverStaff = await res.json();
+      clientDb.addStaff(serverStaff);
+      return serverStaff;
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch')) {
+        throw err;
+      }
       console.warn('[CND API] Backend staff creation call offline. Preserved in local storage.');
+      return clientDb.addStaff(staffData);
     }
-    return localStaff;
   },
 
   async addHod(hodData: any, token?: string | null): Promise<User> {
-    const localHod = clientDb.addHod(hodData);
     try {
       const res = await fetch('/api/admin/hod', {
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify(hodData),
       });
-      if (res.ok) {
-        return await res.json();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed to create HOD (${res.status})`);
       }
-    } catch {
+      const serverHod = await res.json();
+      clientDb.addHod(serverHod);
+      return serverHod;
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch')) {
+        throw err;
+      }
       console.warn('[CND API] Backend HOD creation call offline. Preserved in local storage.');
+      return clientDb.addHod(hodData);
     }
-    return localHod;
   },
 
   async updateUser(userId: string, data: Partial<User>, token?: string | null): Promise<User> {

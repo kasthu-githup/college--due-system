@@ -526,13 +526,16 @@ class Database {
       await postgresManager.detectAndInit();
     }
     if (postgresManager.getStatus().isConnected) {
-      postgresManager.saveData(this.data);
-      const ok = await postgresManager.flushSave();
+      const ok = await postgresManager.flushSave(this.data);
       if (ok) {
-        return { success: true, message: 'Synchronized current database state to Render PostgreSQL' };
+        return { success: true, message: `Synchronized current database state to ${postgresManager.getStatus().provider}` };
       }
     }
-    return { success: false, error: postgresManager.getStatus().error || 'Render PostgreSQL is not connected' };
+    return { success: false, error: postgresManager.getStatus().error || 'PostgreSQL database is not connected' };
+  }
+
+  public async flushPostgresDirectly(): Promise<boolean> {
+    return await postgresManager.flushSave(this.data);
   }
 
   private loadData(): DatabaseSchema {
