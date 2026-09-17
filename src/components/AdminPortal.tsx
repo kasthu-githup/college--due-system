@@ -31,6 +31,7 @@ import {
   Download,
   Upload,
   Database,
+  Loader2,
 } from 'lucide-react';
 import { NoDueCertificate } from './NoDueCertificate';
 import { EditUserModal } from './admin/EditUserModal';
@@ -125,6 +126,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   const [studHosteler, setStudHosteler] = useState(false);
   const [studPhone, setStudPhone] = useState('');
 
+  // Local Modal loading and error tracking
+  const [isSubmittingStudent, setIsSubmittingStudent] = useState(false);
+  const [studentModalError, setStudentModalError] = useState<string | null>(null);
+  const [isSubmittingHod, setIsSubmittingHod] = useState(false);
+  const [hodModalError, setHodModalError] = useState<string | null>(null);
+
   // Bulk CSV student import modal
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkCsv, setBulkCsv] = useState('');
@@ -202,8 +209,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
   // Handle Add HOD
   const handleAddHod = async (e: React.FormEvent) => {
     e.preventDefault();
+    setHodModalError(null);
     setFormError(null);
     setFormSuccess(null);
+    setIsSubmittingHod(true);
 
     try {
       const data = await api.addHod({
@@ -223,15 +232,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
       setHodPhone('');
       fetchData();
     } catch (err: any) {
+      setHodModalError(err.message);
       setFormError(err.message);
+    } finally {
+      setIsSubmittingHod(false);
     }
   };
 
   // Handle Add Student
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStudentModalError(null);
     setFormError(null);
     setFormSuccess(null);
+    setIsSubmittingStudent(true);
 
     try {
       const data = await api.addStudent({
@@ -258,7 +272,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
       setStudPhone('');
       fetchData();
     } catch (err: any) {
+      setStudentModalError(err.message);
       setFormError(err.message);
+    } finally {
+      setIsSubmittingStudent(false);
     }
   };
 
@@ -1677,6 +1694,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
             <h3 className="text-base font-bold text-stone-900 pb-3 border-b border-stone-100">
               Appoint Department Head (HOD)
             </h3>
+
+            {hodModalError && (
+              <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start space-x-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-bold text-rose-900">{hodModalError}</p>
+                  <p className="text-[11px] text-rose-700 mt-0.5">Please check if username or official email is already in use.</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleAddHod} className="mt-4 space-y-3.5 text-xs">
               <div>
                 <label className="block font-bold text-stone-700 mb-1">Full Name</label>
@@ -1783,9 +1811,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-stone-900 text-white font-bold rounded-lg hover:bg-stone-800"
+                    disabled={isSubmittingHod}
+                    className="inline-flex items-center space-x-1.5 px-5 py-2 bg-stone-900 text-white font-bold rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    Appoint HOD
+                    {isSubmittingHod ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Appointing HOD...</span>
+                      </>
+                    ) : (
+                      <span>Appoint HOD</span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1801,6 +1837,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
             <h3 className="text-base font-bold text-stone-900 pb-3 border-b border-stone-100">
               Register Student &amp; Provision Clearance Record
             </h3>
+
+            {studentModalError && (
+              <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start space-x-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-bold text-rose-900">{studentModalError}</p>
+                  <p className="text-[11px] text-rose-700 mt-0.5">
+                    Please verify that the Roll Number ({studRollNo}) and Email ({studEmail}) are not already in use.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleAddStudent} className="mt-4 space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1954,9 +2003,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onOpenResetModal }) =>
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-stone-900 text-white font-bold rounded-lg hover:bg-stone-800"
+                    disabled={isSubmittingStudent}
+                    className="inline-flex items-center space-x-1.5 px-5 py-2 bg-stone-900 text-white font-bold rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    Register Student
+                    {isSubmittingStudent ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Registering Student...</span>
+                      </>
+                    ) : (
+                      <span>Register Student</span>
+                    )}
                   </button>
                 </div>
               </div>

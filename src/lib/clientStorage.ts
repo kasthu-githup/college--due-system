@@ -800,10 +800,22 @@ class ClientStorageEngine {
 
   public addStudent(studentData: any): User {
     const regNo = (studentData.rollNo || studentData.registerNo || '').trim().toUpperCase();
+    const existing = this.data.users.find(u =>
+      (studentData.id && u.id === studentData.id) ||
+      (regNo && u.rollNo?.toUpperCase() === regNo) ||
+      (studentData.email && u.email?.toLowerCase() === studentData.email.toLowerCase())
+    );
+    if (existing) {
+      Object.assign(existing, studentData);
+      this.saveData();
+      const { password, ...safe } = existing;
+      return safe as User;
+    }
+
     const dept = this.data.departments.find(d => d.id === studentData.departmentId) || this.data.departments[0];
     const newStudent: User = {
-      id: `user_student_${Date.now()}`,
-      username: studentData.rollNo || studentData.registerNo,
+      id: studentData.id || `user_student_${Date.now()}`,
+      username: studentData.username || studentData.rollNo || studentData.registerNo,
       rollNo: regNo,
       registerNo: studentData.registerNo || regNo,
       name: studentData.name,

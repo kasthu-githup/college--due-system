@@ -471,6 +471,19 @@ class Database {
         const pgData = await postgresManager.loadData();
         if (pgData && pgData.users && pgData.clearances && pgData.departments) {
           console.log('🔄 Synchronized in-memory database with Render PostgreSQL');
+          pgData.subjects = pgData.subjects || [];
+          pgData.clearances.forEach((clr: any) => {
+            if (!Array.isArray(clr.items)) {
+              const student = pgData.users.find((u: any) => u.id === clr.studentId);
+              const dept =
+                pgData.departments.find((d: any) => d.id === clr.studentDepartmentId) ||
+                pgData.departments[0];
+              clr.items = getDefaultCheckpoints(
+                student || { id: clr.studentId, name: clr.studentName },
+                dept?.name || 'Department'
+              );
+            }
+          });
           this.data = pgData;
           this.syncSubjectCheckpoints();
           // Also refresh local file cache
@@ -545,6 +558,18 @@ class Database {
         const parsed = JSON.parse(raw);
         if (parsed.users && parsed.clearances && parsed.departments) {
           parsed.subjects = parsed.subjects || [];
+          parsed.clearances.forEach((clr: any) => {
+            if (!Array.isArray(clr.items)) {
+              const student = parsed.users.find((u: any) => u.id === clr.studentId);
+              const dept =
+                parsed.departments.find((d: any) => d.id === clr.studentDepartmentId) ||
+                parsed.departments[0];
+              clr.items = getDefaultCheckpoints(
+                student || { id: clr.studentId, name: clr.studentName },
+                dept?.name || 'Department'
+              );
+            }
+          });
           return parsed;
         }
       }
@@ -1416,6 +1441,19 @@ class Database {
     const subjects = this.data.subjects || [];
 
     this.data.clearances.forEach((clr) => {
+      if (!Array.isArray(clr.items)) {
+        const student = this.data.users.find((u) => u.id === clr.studentId);
+        const dept =
+          this.data.departments.find(
+            (d) => d.id === clr.studentDepartmentId || (student && d.id === student.departmentId)
+          ) || this.data.departments[0];
+        clr.items = getDefaultCheckpoints(
+          student || { id: clr.studentId, name: clr.studentName, isHosteler: clr.isHosteler },
+          dept?.name || 'Academic Department'
+        );
+        modified = true;
+      }
+
       // Find all subjects in this student's department
       const deptSubjects = subjects.filter((s) => s.departmentId === clr.studentDepartmentId);
 

@@ -94,7 +94,7 @@ async function startServer() {
         return res.status(400).json({ error: 'Code and Name are required' });
       }
       const dept = db.addDepartment(code, name, description || '', req.user!);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json(dept);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -106,7 +106,7 @@ async function startServer() {
     try {
       const { code, name, description, hodId } = req.body;
       const dept = db.updateDepartment(req.params.id, { code, name, description, hodId }, req.user!);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(dept);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -117,7 +117,7 @@ async function startServer() {
   app.delete('/api/departments/:id', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const success = db.deleteDepartment(req.params.id, req.user!);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json({ success });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -163,7 +163,7 @@ async function startServer() {
         { name, username, email, password, departmentId, phone },
         req.user!
       );
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json(hod);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -182,7 +182,7 @@ async function startServer() {
         { name, rollNo, registerNo, email, password, departmentId, degree, batchYear, semester, isHosteler, phone },
         req.user!
       );
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json(student);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -209,7 +209,7 @@ async function startServer() {
         }
       }
 
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json({ createdCount: created.length, created, errors });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -228,7 +228,7 @@ async function startServer() {
         { name, staffId, email, password, designation, clearanceScope, departmentId, phone },
         req.user!
       );
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json(staff);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -239,7 +239,7 @@ async function startServer() {
   app.put('/api/users/:id', authenticate, requireRole('ADMIN', 'HOD'), async (req: AuthenticatedRequest, res) => {
     try {
       const updated = db.updateUser(req.params.id, req.body, req.user!);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -253,7 +253,7 @@ async function startServer() {
       if (!success) {
         return res.status(404).json({ error: 'User not found' });
       }
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json({ success: true });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -316,6 +316,7 @@ async function startServer() {
         req.user!
       );
 
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json(subject);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -336,6 +337,7 @@ async function startServer() {
       }
 
       const updated = db.updateSubject(req.params.id, req.body, req.user!);
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -356,6 +358,7 @@ async function startServer() {
       }
 
       const updated = db.allocateSubjectStaff(req.params.id, staffId || '', req.user!);
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -375,6 +378,7 @@ async function startServer() {
       }
 
       db.deleteSubject(req.params.id, req.user!);
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json({ success: true });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -441,7 +445,7 @@ async function startServer() {
         actor: req.user!
       });
 
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -462,7 +466,7 @@ async function startServer() {
         remarks,
         actor: req.user!,
       });
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -482,7 +486,7 @@ async function startServer() {
         dueReason,
         remarks
       }, req.user!);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.status(201).json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -493,7 +497,7 @@ async function startServer() {
   app.delete('/api/clearances/:clearanceId/items/:itemId', authenticate, requireRole('ADMIN'), async (req: AuthenticatedRequest, res) => {
     try {
       const updated = db.deleteClearanceCheckpoint(req.params.clearanceId, req.params.itemId, req.user!);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -509,7 +513,7 @@ async function startServer() {
       }
 
       const updated = db.payDue(studentClearanceId, itemId, req.user!, transactionNote);
-      await db.flushPostgresDirectly();
+      db.flushPostgresDirectly().catch((err: any) => console.error('[Neon DB Sync Error]:', err.message));
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
